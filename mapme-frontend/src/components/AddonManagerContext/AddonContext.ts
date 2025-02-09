@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from "react";
-import { AddonManager } from "./addonManager";
+import { AddonManagerController } from "./AddonManagerController";
 
-export const AddonContext = createContext<AddonManager | null>(null);
+export const AddonContext = createContext<AddonManagerController | null>(null);
 
 export const useAddonContext = () => {
   const context = useContext(AddonContext);

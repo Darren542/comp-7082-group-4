@@ -2,7 +2,7 @@ import { useContext, createContext } from "react";
 import { Viewer, Color } from "cesium";
 
 export interface CesiumContextType {
-  viewer: Viewer | null;
+  // viewer: Viewer | null;
   addEntityToGroup: (
     groupId: string,
     entityOptions: {
@@ -14,6 +14,7 @@ export interface CesiumContextType {
   ) => void;
   clearGroup: (groupId: string) => void;
   removeEntityFromGroup: (groupId: string, entityId: string) => void;
+  getViewer: () => Viewer | null;
 }
 
 export const CesiumContext = createContext<CesiumContextType | undefined>(undefined);

@@ -12,6 +12,7 @@ export const CesiumProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const viewerRef = useRef<Viewer | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const entityGroupsRef = useRef<{ [key: string]: EntityGroup }>({}); // Track groups by groupId
+  const [viewer, setViewer] = React.useState<Viewer | null>(null);
 
   useEffect(() => {
     Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_ACCESS_TOKEN as string;
@@ -23,10 +24,13 @@ export const CesiumProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       terrainProvider: undefined,
     });
 
+    setViewer(viewerRef.current);
+
     return () => {
       if (viewerRef.current) {
         viewerRef.current.destroy();
         viewerRef.current = null;
+        setViewer(null);
       }
     };
   }, []);
@@ -58,7 +62,11 @@ export const CesiumProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (!entityGroupsRef.current[groupId]) return;
 
     // Remove all entities in the group
+    console.log("[CesiumProvider] Clearing group", groupId);
     entityGroupsRef.current[groupId].dataSource.entities.removeAll();
+    
+    // Tell Cesium to reload the data source
+    // viewerRef.current?.dataSources.remove(entityGroupsRef.current[groupId].dataSource, true);
   };
 
   const removeEntityFromGroup = (groupId: string, entityId: string) => {
@@ -78,12 +86,15 @@ export const CesiumProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     entityGroupsRef.current[groupId].dataSource.show = show;
   };
 
+  const getViewer = () => viewerRef.current;
+
   const returnValue = {
-    viewer: viewerRef.current,
+    viewer,
     addEntityToGroup,
     clearGroup,
     removeEntityFromGroup,
     showGroup,
+    getViewer,
   }
 
   return (

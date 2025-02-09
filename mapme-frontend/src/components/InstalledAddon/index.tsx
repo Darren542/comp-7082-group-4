@@ -1,15 +1,19 @@
 import React from "react";
 import { useInstalledAddon } from "./hooks/useInstalledAddon";
-import { ServerAddonType } from "../AddonManagerContext/addonManager";
+import { ServerAddonType } from "../AddonManagerContext/AddonManagerController";
 
 type InstalledAddonProps = {
   details: ServerAddonType;
+  update: (newStatus: ServerAddonType) => void;
+  openAddonWindow: (addonName: string) => void;
 };
 
 export const InstalledAddon = ({
   details,
+  update,
+  openAddonWindow,
 }: InstalledAddonProps) => {
-  const { handleToggleVisibility, handleRemove, handleShowDetails, isVisible } = useInstalledAddon(details);
+  const { handleToggleVisibility, handleRemove, handleShowDetails, isVisible } = useInstalledAddon(details, update);
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700">
@@ -40,7 +44,7 @@ export const InstalledAddon = ({
         {/* Details Button */}
         <button
           className="cursor-pointer rounded-md bg-blue-500 px-2 py-1 text-xs font-medium text-white hover:bg-blue-600 transition-colors"
-          onClick={() => handleShowDetails(details.name)}
+          onClick={() => openAddonWindow(details.name)}
         >
           Details
         </button>

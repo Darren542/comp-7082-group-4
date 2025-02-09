@@ -1,11 +1,23 @@
-import React, { useState } from "react";
+import React from "react";
 import useSidebar from "./hooks/useSidebar";
 import { AvailableAddon } from "../AvailableAddon";
 import { InstalledAddon } from "../InstalledAddon";
 import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
+import { ServerAddonType } from "../AddonManagerContext/AddonManagerController";
 
+type SidebarProps = {
+  availableAddons: ServerAddonType[];
+  installedAddons: ServerAddonType[];
+  updateAddonStatus: (newStatus: ServerAddonType) => void;
+  openAddonWindow: (addonName: string) => void;
+};
 
-const Sidebar = () => {
+const Sidebar = ({ 
+  availableAddons,
+  installedAddons,
+  updateAddonStatus,
+  openAddonWindow
+}: SidebarProps) => {
   const hook = useSidebar();
 
   return (
@@ -26,8 +38,8 @@ const Sidebar = () => {
 
           {!hook.isAvailableCollapsed && (
             <div className="space-y-1">
-              {hook.availableAddons.map((item) => (
-                <AvailableAddon key={item.name} details={item} />
+              {availableAddons.map((item) => (
+                <AvailableAddon key={item.name} details={item} update={updateAddonStatus} />
               ))}
             </div>
           )}
@@ -48,8 +60,13 @@ const Sidebar = () => {
 
           {!hook.isInstalledCollapsed && (
             <div className="space-y-1">
-              {hook.installedAddons.map((item) => (
-                <InstalledAddon key={item.name} details={item} />
+              {installedAddons.map((item) => (
+                <InstalledAddon
+                  key={item.name}
+                  details={item}
+                  update={updateAddonStatus}
+                  openAddonWindow={openAddonWindow}
+                />
               ))}
             </div>
           )}

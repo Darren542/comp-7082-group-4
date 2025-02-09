@@ -1,14 +1,12 @@
 import React from 'react'
-import { useAvailableAddon } from './hooks/useAvailableAddon'
-import { ServerAddonType } from '../AddonManagerContext/addonManager'
+import { ServerAddonType } from '../AddonManagerContext/AddonManagerController'
 
 type AvailableAddonProps = {
   details: ServerAddonType
+  update: (newStatus: ServerAddonType) => void
 }
 
-export const AvailableAddon = ({ details }: AvailableAddonProps) => {
-  const { handleAdd } = useAvailableAddon();
-
+export const AvailableAddon = ({ details, update }: AvailableAddonProps) => {
   return (
     <div className="border border-gray-200 mx-auto flex max-w-sm justify-between items-start gap-4 bg-white p-4 shadow-md hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700 dark:hover:shadow-md">
       <div>
@@ -18,7 +16,7 @@ export const AvailableAddon = ({ details }: AvailableAddonProps) => {
 
       <button
         className="shrink-0 px-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-500 cursor-pointer"
-        onClick={() => handleAdd(details.name)}
+        onClick={() => update({ ...details, installed: true, active: true })}
         aria-label={`Add ${details.name}`}
       >
         Add
