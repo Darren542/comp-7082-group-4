@@ -4,7 +4,7 @@ type InputFieldProps = {
     placeholder: string;
   };  
 
-const InputField: React.FC<InputFieldProps> = ({ placeholder }) => {
+export const InputField: React.FC<InputFieldProps> = ({ placeholder }) => {
     return (
       <input
         type="text"
@@ -14,4 +14,3 @@ const InputField: React.FC<InputFieldProps> = ({ placeholder }) => {
     );
   };
 
-export default InputField;

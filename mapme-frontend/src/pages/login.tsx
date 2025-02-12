@@ -1,11 +1,13 @@
 import bgPhoto from '../assets/bg.png'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import city from '../assets/city.png'
 import gLogo from '../assets/googleLogo.svg'
-import Button from '../components/button'
-import InputField from '../components/inputField'
+import {Button} from '../components/button'
+import {InputField} from '../components/inputField'
 
 
 export default function Login(){
+    const navigate = useNavigate();
     
     return(
         <div className="bg-cover h-screen w-screen flex flex-col items-center justify-center" style={{ backgroundImage: `url(${bgPhoto})` }}>
@@ -20,7 +22,7 @@ export default function Login(){
                 <InputField placeholder="Password" />
                 <Button 
                   text="Login"
-                  onClick={() => {}}
+                  onClick={() => navigate('/map')}
                 >
                 </Button>
                 <h1 className="text-2xl opacity-30 text-black font-medium">Or</h1>

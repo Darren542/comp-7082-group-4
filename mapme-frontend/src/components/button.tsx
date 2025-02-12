@@ -6,7 +6,7 @@ type ButtonProps = {
 };
 
 //button component
-const Button: React.FC<ButtonProps> = ({ text, onClick }) => {
+export const Button: React.FC<ButtonProps> = ({ text, onClick }) => {
   return (
     <button
       onClick={onClick}
@@ -17,4 +17,4 @@ const Button: React.FC<ButtonProps> = ({ text, onClick }) => {
   );
 };
 
-export default Button;
+
