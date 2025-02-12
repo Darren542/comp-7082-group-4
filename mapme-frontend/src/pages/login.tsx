@@ -1,5 +1,5 @@
 import bgPhoto from '../assets/bg.png'
-import { Routes, Route, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import city from '../assets/city.png'
 import gLogo from '../assets/googleLogo.svg'
 import {Button} from '../components/button'
