@@ -25,7 +25,7 @@ const Sidebar = ({
       <div>
         <div>
           <div
-            className="flex justify-between items-center cursor-pointer"
+            className="flex justify-between items-center cursor-pointer pr-2"
             onClick={() => hook.setIsAvailableCollapsed(!hook.isAvailableCollapsed)}
           >
             <h2 className="text-xl font-bold p-2">Available Addons</h2>
@@ -47,7 +47,7 @@ const Sidebar = ({
 
         <div>
           <div
-            className="flex justify-between items-center cursor-pointer"
+            className="flex justify-between items-center cursor-pointer pr-2"
             onClick={() => hook.setIsInstalledCollapsed(!hook.isInstalledCollapsed)}
           >
             <h2 className="text-xl font-bold p-2">Installed Addons</h2>

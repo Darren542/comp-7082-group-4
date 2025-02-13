@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from "react";
 import { Viewer, Entity, Cartesian3, Color, CustomDataSource, Ion } from "cesium";
 import { CesiumContext } from "./useCesiumContext";
-import { Topbar } from "../Topbar";
+import { Header } from "../Header";
 
 interface EntityGroup {
   dataSource: CustomDataSource;
@@ -100,7 +100,9 @@ export const CesiumProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   return (
     <CesiumContext.Provider value={returnValue}>
       <div>
-        <Topbar />
+        <div style={{ width: "100%", height: "60px", overflow: "hidden" }}>
+          <Header />
+        </div>
         <div style={{ display: "flex", width: "100vw", height: "calc(100vh - 60px)" }}>
           {children}
           <div ref={containerRef} style={{ width: "100%", height: "calc(100vh - 60px)" }} />

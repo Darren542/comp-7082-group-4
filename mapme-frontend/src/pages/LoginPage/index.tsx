@@ -1,14 +1,14 @@
-import bgPhoto from '../assets/bg.png'
+import bgPhoto from '../../assets/bg.png'
+import gLogo from '../../assets/googleLogo.svg'
+import city from '../../assets/city.png'
 import { useNavigate } from 'react-router-dom'
-import city from '../assets/city.png'
-import gLogo from '../assets/googleLogo.svg'
-import {Button} from '../components/button'
-import {InputField} from '../components/inputField'
+import {Button} from '../../components/button'
+import {InputField} from '../../components/inputField'
 
 
-export default function Login(){
+export const LoginPage = () => {
     const navigate = useNavigate();
-    
+  
     return(
         <div className="bg-cover h-screen w-screen flex flex-col items-center justify-center" style={{ backgroundImage: `url(${bgPhoto})` }}>
           <div className="flex w-full max-w-7xl items-center justify-center">
