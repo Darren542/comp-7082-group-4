@@ -1,16 +1,18 @@
-import React from "react";
+interface InputFieldProps {
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
+}
 
-type InputFieldProps = {
-    placeholder: string;
-  };  
-
-export const InputField: React.FC<InputFieldProps> = ({ placeholder }) => {
-    return (
-      <input
-        type="text"
-        placeholder={placeholder}
-        className="border-2 border-[#5465FF] text-[#5465FF] bg-[#E2FDFF] rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#5465FF]"
-      />
-    );
-  };
-
+export const InputField: React.FC<InputFieldProps> = ({ placeholder, value, onChange, type = "text" }) => {
+  return (
+    <input
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      className="border border-gray-300 rounded-md px-3 py-2 w-full"
+    />
+  );
+};

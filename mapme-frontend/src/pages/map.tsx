@@ -6,6 +6,7 @@ import AddonManager from "../components/AddonManager";
 export default function Map() {
   return (
     // TODO Set these to be rendered after someone logs in.
+
     <CesiumProvider>
       <AddonProvider>
         <div style={{ display: "flex", height: "calc(100vh - 60xpx)" }}>
