@@ -4,6 +4,7 @@ import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
 import { MapPage } from './pages/MapPage'
 import { LandingPage } from './pages/LandingPage'
+import { NotFoundPage } from './pages/404'
 import './App.css'
 
 interface User {
@@ -21,6 +22,8 @@ function App() {
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/map" element={<MapPage />} />
       <Route path="/" element={<LandingPage user={user} />} />
+      {/* Default Route */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }
