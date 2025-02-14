@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect, useContext } from "react";
-import { useCesium } from "../../CesiumContext/useCesiumContext";
-import { Color } from "cesium";
 import { AddonContext } from "../../AddonManagerContext/AddonContext";
 import { ServerAddonType } from "../../AddonManagerContext/AddonManagerController";
 
@@ -40,8 +38,6 @@ const useAddonManager = () => {
       console.error(err.message);
     }
   }
-
-  // const installAddon = async 
 
   // TODO I had a lot of functionality here that I have moved to the addonManager, still needs to be refactored more
   useEffect(() => {

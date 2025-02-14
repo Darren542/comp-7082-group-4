@@ -220,4 +220,8 @@ export class AddonManagerController extends EventEmitter {
     }
     return [];
   }
+
+  getAddonController(name: string): AddonControlInterface | undefined {
+    return this.addons[name];
+  }
 }

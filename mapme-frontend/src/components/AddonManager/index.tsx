@@ -1,6 +1,16 @@
 import Sidebar from "../Sidebar";
 import useAddonManager from "./hooks/useAddonManager";
 import { AddonWindow } from "../AddonWindow";
+import { CanadaTravelAdvisoryModal } from "../../addon/CanadaTravelAdvisory/CanadaTravelAdvisoryModal";
+
+const getAddonComponent = (addonName: string) => {
+  switch (addonName) {
+    case "canadaTravelAdvisory":
+      return <CanadaTravelAdvisoryModal />;
+    default:
+      return <p>No Details Available</p>
+  }
+};
 
 const AddonManager = () => {
   const hook = useAddonManager();
@@ -20,7 +30,11 @@ const AddonManager = () => {
       {/* Render Addon Windows Dynamically */}
       {Object.entries(hook.openWindows).map(
         ([addonName, isOpen]) =>
-          isOpen && <AddonWindow key={addonName} name={addonName} onClose={hook.toggleAddonWindow} />
+          isOpen && 
+            <AddonWindow key={addonName} name={addonName} onClose={hook.toggleAddonWindow}>
+              {/* Addon Specific Content Goes Here */}
+              {getAddonComponent(addonName)}
+            </AddonWindow>
       )}
     </>
   );

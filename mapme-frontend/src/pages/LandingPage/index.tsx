@@ -1,11 +1,11 @@
-import { Button } from "../components/button"
+import { Button } from "../../components/button"
 import { useNavigate } from "react-router-dom"
-import bgPhoto from "../assets/bg.png";
-import city from "../assets/city.png";
-import tmaster from '../assets/tmaster.png'
-import pins from '../assets/pins.png'
-import globe from '../assets/globe.png'
-import yelp from '../assets/yelp.png'
+import bgPhoto from "../../assets/bg.png";
+import city from "../../assets/city.png";
+import tmaster from '../../assets/tmaster.png'
+import pins from '../../assets/pins.png'
+import globe from '../../assets/globe.png'
+import yelp from '../../assets/yelp.png'
 
 interface User {
     id: string,
@@ -17,7 +17,7 @@ interface LandingPageProps {
     user: User | null,
 }
 
-export default function LandingPage({ user }: LandingPageProps) {
+export const LandingPage =({ user }: LandingPageProps) => {
     const navigate = useNavigate()
 
     if (user) {
@@ -25,9 +25,9 @@ export default function LandingPage({ user }: LandingPageProps) {
     }
 
     return (
-        <div className="h-screen w-screen bg-cover flex flex-col items-center justify-center" style={{ backgroundImage: `url(${bgPhoto})` }}>
+        <div className="overflow-x-hidden h-screen w-screen bg-cover flex flex-col items-center justify-center" style={{ backgroundImage: `url(${bgPhoto})` }}>
           <div className="flex w-full">
-            <div className="w-1/2 m-10 pl-10 pt-10 ">
+            <div className="w-1/2 m-10 mt-0 pl-10 pt-10 ">
               <div className="mt-10 pl-10 ml-10 pt-10 p-6">
                 <h1 className="text-6xl font-bold text-black">Discover the world </h1>
                 <h1 className="text-6xl font-bold text-black">you want to see</h1>
@@ -47,7 +47,7 @@ export default function LandingPage({ user }: LandingPageProps) {
               </div>
             </div>
             <div className="w-1/2 mt-10">
-              <div className="mt-10 pt-10">
+              <div className="mt-0 pt-10">
                 <img
                   src={city} 
                   alt="city" 
@@ -59,7 +59,7 @@ export default function LandingPage({ user }: LandingPageProps) {
             </div>
           </div>
           {/* logos and such */}
-          <div className="flex w-3/4 justify-center gap-10 pt-20">
+          <div className="flex w-3/4 justify-center gap-10 pt-12">
             {/* ticketmaster */}
             <div className="flex flex-col items-center">
               <img

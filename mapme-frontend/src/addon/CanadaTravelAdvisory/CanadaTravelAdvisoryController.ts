@@ -20,6 +20,7 @@ export class CanadaTravelAdvisoryController implements AddonControlInterface {
   public groupId = "canadaTravelAdvisory";
   private apiLocation = "http://localhost:5000/api/testAddon";
   private countryGeoJsonDataSource: Cesium.GeoJsonDataSource | null = null;
+  private travelAdvisoryJson: any = null;
   private loading = false;
 
   constructor(private cesium: CesiumContextType) {
@@ -74,14 +75,14 @@ export class CanadaTravelAdvisoryController implements AddonControlInterface {
       viewer.dataSources.add(geoJsonDataSource);
   
       const travelAdvisory = await fetch("/canadaTravelAdvisory.json");
-      const travelAdvisoryJson = await travelAdvisory.json();
+      this.travelAdvisoryJson = await travelAdvisory.json();
   
       // Apply the travel advisory state to the countries
       geoJsonDataSource.entities.values.forEach((entity) => {
         if (!entity.polygon) return; // Ensure polygon exists
       
         const ISO_A2 = entity.properties?.ISO_A2;
-        const stateLevel = travelAdvisoryJson.data?.[ISO_A2]?.["advisory-state"] ?? 5;
+        const stateLevel = this.travelAdvisoryJson.data?.[ISO_A2]?.["advisory-state"] ?? 5;
         entity.polygon.material = new Cesium.ColorMaterialProperty(
           ISO_A2 == "CA" ? Cesium.Color.BLUE.withAlpha(0.5) : getColorForAdvisoryState(stateLevel ?? 5) 
         );
@@ -158,5 +159,10 @@ export class CanadaTravelAdvisoryController implements AddonControlInterface {
     if (options.apiLocation) {
       this.apiLocation = options.apiLocation;
     }
+  }
+
+  getLastDataUpdate(): string {
+    if (!this.travelAdvisoryJson) return "No data";
+    return this.travelAdvisoryJson?.metadata?.generated?.date || "No data";
   }
 }

@@ -1,10 +1,10 @@
 import { Routes, Route } from 'react-router-dom'
-import Login from './pages/login'
-import Map from './pages/map'
-import LandingPage from './pages/landingPage'
-import './App.css'
 import { useState } from 'react'
-import Signup from './pages/signup'
+import { LoginPage } from './pages/LoginPage'
+import { SignupPage } from './pages/SignupPage'
+import { MapPage } from './pages/MapPage'
+import { LandingPage } from './pages/LandingPage'
+import './App.css'
 
 interface User {
   id: string,
@@ -17,9 +17,9 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/map" element={<Map />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/map" element={<MapPage />} />
       <Route path="/" element={<LandingPage user={user} />} />
     </Routes>
   )
