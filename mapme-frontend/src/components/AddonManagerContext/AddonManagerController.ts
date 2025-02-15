@@ -1,9 +1,7 @@
 import { EventEmitter } from "events";
-
-import { TestAddon } from "../../addon/testAddon/hooks/TestAddon";
-import { TestAddon2 } from "../../addon/testAddon2/hooks/TestAddon2";
 import { CesiumContextType } from "../CesiumContext/useCesiumContext";
-import { CanadaTravelAdvisoryController } from "../../addon/CanadaTravelAdvisory/CanadaTravelAdvisoryController";
+import { CanadaTravelAdvisoryController } from "../../addons/CanadaTravelAdvisory/CanadaTravelAdvisoryController";
+import { APP_CONFIG } from "../../config";
 
 /**
  * A enum of the different states an addon can be in.
@@ -19,18 +17,20 @@ export enum AddonState {
 
 /**
  * This interface should be implemented by all addons.
- * We should get this finalized before we start implementing the addons.
  */
 export interface AddonControlInterface {
   install: () => Promise<boolean>;
   initialize: () => Promise<boolean>;
-  start: () => void;
-  stop: () => void;
-  destroy: () => void;
+  start: () => Promise<boolean>;
+  stop: () => Promise<boolean>;
+  destroy: () => Promise<boolean>;
+  uninstall: () => Promise<boolean>;
   getState: () => AddonState;
   setInstalledPreviously: () => void;
   setOptions: (options: Record<string, any>) => void;
   groupId: string;
+  // You can't enforce constructors in an interface
+  // But this is how it should look when you make a new addon
   // constructor: (cesium: CesiumContextType) => void;
 }
 
@@ -38,6 +38,7 @@ export interface AddonControlInterface {
  * This type matches the response from the server.
  */
 export type ServerAddonType = {
+  id: string;
   name: string;
   desc: string;
   active: boolean;
@@ -58,13 +59,9 @@ export class AddonManagerController extends EventEmitter {
 
   constructor(cesium: CesiumContextType) {
     super();
-    // Register available addons
+    // Register available addons here
     this.addons = {
       canadaTravelAdvisory: new CanadaTravelAdvisoryController(cesium),
-      // testAddon: new TestAddon(cesium),
-      // testAddon2: new TestAddon2(cesium),
-      // testAddon3: new TestAddon2(cesium),
-      // testAddon4: new TestAddon2(cesium),
     };
 
     this.cesium = cesium;
@@ -72,26 +69,26 @@ export class AddonManagerController extends EventEmitter {
 
   /**
    * We should parallelize the initialization of addons.
-   * @param name the name of the addon is registered with
+   * @param id the name of the addon is registered with
    * @returns 
    */
-  async initializeAndStartAddon(name: string) {
-    if (this.addons[name]) {
-      console.log(`[AddonManagerController] Found installed addon: ${name}`);
+  async initializeAndStartAddon(id: string) {
+    if (this.addons[id]) {
+      console.log(`[AddonManagerController] Found installed addon: ${id}`);
 
       // Initialize the addon
-      const isInitialized = await this.addons[name].initialize();
+      const isInitialized = await this.addons[id].initialize();
       if (!isInitialized) {
-        console.error(`[AddonManagerController] Failed to initialize addon: ${name}`);
+        console.error(`[AddonManagerController] Failed to initialize addon: ${id}`);
         return;
       }
 
       // Start the addon if it is active
-      console.log(`[AddonManagerController] Starting active addon: ${name}`);
-      this.addons[name].start();
+      console.log(`[AddonManagerController] Starting active addon: ${id}`);
+      this.addons[id].start();
 
     } else {
-      console.warn(`[AddonManagerController] Addon ${name} is not registered.`);
+      console.warn(`[AddonManagerController] Addon ${id} is not registered.`);
     }
   }
 
@@ -99,13 +96,13 @@ export class AddonManagerController extends EventEmitter {
    * Configuration details from server, that are needed before starting the addon.
    */
   configureAddonStatus(addon: ServerAddonType) {
-    if (!this.addons[addon.name]) {
-      console.warn(`[AddonManagerController] Addon ${addon.name} is not registered.`);
+    if (!this.addons[addon.id]) {
+      console.warn(`[AddonManagerController] Addon ${addon.id} is not registered.`);
       return;
     }
 
-    this.addons[addon.name].setOptions({ apiLocation: addon.apiLocation });
-    if (addon.installed) this.addons[addon.name].setInstalledPreviously();
+    this.addons[addon.id].setOptions({ apiLocation: addon.apiLocation });
+    if (addon.installed) this.addons[addon.id].setInstalledPreviously();
   }
 
 
@@ -122,8 +119,7 @@ export class AddonManagerController extends EventEmitter {
         throw new Error(`Error: ${response.status}`);
       }
       const data: ServerAddonType[] = await response.json();
-      console.log("[AddonManagerController] Addons loaded successfully.");
-      console.log(data);
+      console.log("[AddonManagerController] Addons loaded successfully.", data);
       AllAddons = data;
       this.serverAddons = data;
       this.emit("addonsLoaded");
@@ -133,34 +129,34 @@ export class AddonManagerController extends EventEmitter {
 
     for (const addon of AllAddons) {
       this.configureAddonStatus(addon);
-      const { name, active, installed } = addon;
+      const { id, active, installed } = addon;
       if (installed && active) {
-        await this.initializeAndStartAddon(name);
+        await this.initializeAndStartAddon(id);
       }
     }
   }
 
-  async startAddon(name: string) {
-    if (this.addons[name]) {
-      console.log(`[AddonManagerController] Starting addon: ${name}`);
-      this.addons[name].start();
+  async startAddon(id: string) {
+    if (this.addons[id]) {
+      console.log(`[AddonManagerController] Starting addon: ${id}`);
+      this.addons[id].start();
     } else {
-      console.warn(`[AddonManagerController] Addon ${name} is not registered.`);
+      console.warn(`[AddonManagerController] Addon ${id} is not registered.`);
     }
   }
 
   getInstalledAddons(): ServerAddonType[] {
     return this.serverAddons
     .filter((addon) => addon.installed)
-    .filter((addon) => this.addons[addon.name])
-    .map((addon) => ({ addon: this.addons[addon.name], ...addon }));
+    .filter((addon) => this.addons[addon.id])
+    .map((addon) => ({ addon: this.addons[addon.id], ...addon }));
   }
 
   getAvailableAddons(): ServerAddonType[] {
     return this.serverAddons
       .filter((addon) => !addon.installed)
-      .filter((addon) => this.addons[addon.name])
-      .map((addon) => ({ addon: this.addons[addon.name], ...addon }));
+      .filter((addon) => this.addons[addon.id])
+      .map((addon) => ({ addon: this.addons[addon.id], ...addon }));
   }
 
   /*
@@ -171,9 +167,9 @@ export class AddonManagerController extends EventEmitter {
     */
   async updateAddonStatus(addon: ServerAddonType): Promise<ServerAddonType[]> {
     try {
-      console.log(`[AddonManagerController] Updating addon status: ${addon.name} to installed: ${addon.installed}, active: ${addon.active}`);
+      console.log(`[AddonManagerController] Updating addon status: ${addon.id} to installed: ${addon.installed}, active: ${addon.active}`);
       // Send a post request to the server to update the status of the addon
-      const response = await fetch("http://localhost:5000/api/addons", {
+      const response = await fetch(`${APP_CONFIG.ADDON_MANAGER_URL}/addons`, {
         method: "POST",
         body: JSON.stringify({...addon, addon: undefined}),
         headers: {
@@ -185,31 +181,34 @@ export class AddonManagerController extends EventEmitter {
         return [];
       }
       const data: ServerAddonType[] = await response.json();
-      const oldStatus = this.serverAddons.find((a) => a.name === addon.name);
-      const newStatus = data.find((a) => a.name === addon.name);
-      if (oldStatus && newStatus && this.addons[addon.name]) {
+      const oldStatus = this.serverAddons.find((a) => a.id === addon.id);
+      const newStatus = data.find((a) => a.id === addon.id);
+      if (oldStatus && newStatus && this.addons[addon.id]) {
         // if the addon was installed and is now active, start it
         if (oldStatus.installed && !oldStatus.active && newStatus.active) {
-          console.log(`[AddonManagerController] Starting addon: ${addon.name}`);
-          const addonStatus = this.addons[addon.name].getState();
+          console.log(`[AddonManagerController] Starting addon: ${addon.id}`);
+          const addonStatus = this.addons[addon.id].getState();
           if (addonStatus !== AddonState.stopped) {
-            this.addons[addon.name].initialize();
+            await this.addons[addon.id].initialize();
           }
-          this.addons[addon.name].start();
+          await this.addons[addon.id].start();
         }
         // if the addon was active and is now inactive, stop it
         if (oldStatus.active && !newStatus.active) {
-          this.addons[addon.name].stop();
+          await this.addons[addon.id].stop();
         }
-        // if the addon was installed and is now uninstalled, destroy it
+        // if the addon was installed and is now uninstalled, uninstall it
         if (oldStatus.installed && !newStatus.installed) {
-          this.addons[addon.name].destroy();
+          await this.addons[addon.id].destroy();
+          await this.addons[addon.id].uninstall();
         }
         // if the addon was uninstalled and is now installed, initialize it
         if (!oldStatus.installed && newStatus.installed) {
-          await this.addons[addon.name].install();
-          await this.addons[addon.name].initialize();
-          this.addons[addon.name].start();
+          this.addons[addon.id].install()
+            .then(() => this.addons[addon.id].initialize())
+            .then(() => this.addons[addon.id].start());
+          // const response = await this.addons[addon.id].initialize();
+          // await this.addons[addon.id].start();
         }
       }
       this.serverAddons = data;
@@ -221,7 +220,7 @@ export class AddonManagerController extends EventEmitter {
     return [];
   }
 
-  getAddonController(name: string): AddonControlInterface | undefined {
-    return this.addons[name];
+  getAddonController(id: string): AddonControlInterface | undefined {
+    return this.addons[id];
   }
 }

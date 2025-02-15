@@ -1,11 +1,16 @@
 import Sidebar from "../Sidebar";
 import useAddonManager from "./hooks/useAddonManager";
 import { AddonWindow } from "../AddonWindow";
-import { CanadaTravelAdvisoryModal } from "../../addon/CanadaTravelAdvisory/CanadaTravelAdvisoryModal";
+import { CanadaTravelAdvisoryModal } from "../../addons/CanadaTravelAdvisory/CanadaTravelAdvisoryModal";
+import { ADDONS } from "../../config";
 
-const getAddonComponent = (addonName: string) => {
-  switch (addonName) {
-    case "canadaTravelAdvisory":
+/**
+ * This function returns the component for the addon based on the addonId.
+ * When a new addon is added, it should be added here.
+ */
+const getAddonComponent = (addonId: string) => {
+  switch (addonId) {
+    case ADDONS.CANADA_TRAVEL_ADVISORY:
       return <CanadaTravelAdvisoryModal />;
     default:
       return <p>No Details Available</p>
@@ -14,9 +19,8 @@ const getAddonComponent = (addonName: string) => {
 
 const AddonManager = () => {
   const hook = useAddonManager();
-
-  console.log("Available Addons: ", hook.availableAddons);
-  console.log("Installed Addons: ", hook.installedAddons);
+  // console.log("Available Addons: ", hook.availableAddons);
+  // console.log("Installed Addons: ", hook.installedAddons);
 
   return (
     <>
@@ -29,11 +33,10 @@ const AddonManager = () => {
 
       {/* Render Addon Windows Dynamically */}
       {Object.entries(hook.openWindows).map(
-        ([addonName, isOpen]) =>
+        ([addonId, isOpen]) =>
           isOpen && 
-            <AddonWindow key={addonName} name={addonName} onClose={hook.toggleAddonWindow}>
-              {/* Addon Specific Content Goes Here */}
-              {getAddonComponent(addonName)}
+            <AddonWindow key={addonId} name={addonId} onClose={hook.toggleAddonWindow}>
+              {getAddonComponent(addonId)}
             </AddonWindow>
       )}
     </>

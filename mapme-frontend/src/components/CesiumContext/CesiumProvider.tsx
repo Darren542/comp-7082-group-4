@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from "react";
 import { Viewer, Entity, Cartesian3, Color, CustomDataSource, Ion } from "cesium";
 import { CesiumContext } from "./useCesiumContext";
 import { Header } from "../Header";
+import { APP_CONFIG } from "../../config";
 
 interface EntityGroup {
   dataSource: CustomDataSource;
@@ -15,7 +16,7 @@ export const CesiumProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [viewer, setViewer] = React.useState<Viewer | null>(null);
 
   useEffect(() => {
-    Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_ACCESS_TOKEN as string;
+    Ion.defaultAccessToken = APP_CONFIG.CESIUM_ACCESS_TOKEN;
     if (!containerRef.current || viewerRef.current) return;
 
     viewerRef.current = new Viewer(containerRef.current, {

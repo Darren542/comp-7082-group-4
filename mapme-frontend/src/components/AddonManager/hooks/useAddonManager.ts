@@ -6,17 +6,15 @@ import { ServerAddonType } from "../../AddonManagerContext/AddonManagerControlle
 const useAddonManager = () => {
   const addonManager = useContext(AddonContext);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [availableAddons, setAvailableAddons] = useState<ServerAddonType[]>([]);
   const [installedAddons, setInstalledAddons] = useState<ServerAddonType[]>([]);
 
   const [openWindows, setOpenWindows] = useState< { [key: string]: boolean } >({});
 
-  const toggleAddonWindow = (addonName: string) => {
+  const toggleAddonWindow = (addonId: string) => {
     setOpenWindows((prev) => ({
       ...prev,
-      [addonName]: !prev[addonName]
+      [addonId]: !prev[addonId]
     }));
   }
 
@@ -61,8 +59,6 @@ const useAddonManager = () => {
   }, [addonManager]);
 
   return { 
-    loading,
-    error,
     availableAddons,
     installedAddons,
     updateAddonStatus,

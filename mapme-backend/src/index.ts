@@ -9,8 +9,8 @@ dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
-function updateAddon(name: string, active: boolean, installed: boolean) {
-  const addon = mockData.installedAddons.find((addon) => addon.name === name);
+function updateAddon(id: string, active: boolean, installed: boolean) {
+  const addon = mockData.installedAddons.find((addon) => addon.id === id);
   if (addon) {
     addon.active = active;
     addon.installed = installed;
@@ -43,8 +43,8 @@ app.get("/api/addons", (req, res) => {
 });
 
 app.post("/api/addons", (req, res) => {
-  const { name, active, installed } = req.body;
-  updateAddon(name, active, installed);
+  const { id, active, installed } = req.body;
+  updateAddon(id, active, installed);
   res.json(mockData.installedAddons);
 });
 

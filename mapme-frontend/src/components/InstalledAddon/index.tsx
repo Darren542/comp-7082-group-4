@@ -13,7 +13,7 @@ export const InstalledAddon = ({
   update,
   openAddonWindow,
 }: InstalledAddonProps) => {
-  const { handleToggleVisibility, handleRemove, handleShowDetails, isVisible } = useInstalledAddon(details, update);
+  const { handleToggleVisibility, handleRemove, isVisible } = useInstalledAddon(details, update);
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700">
@@ -34,7 +34,7 @@ export const InstalledAddon = ({
           <input
             type="checkbox"
             checked={isVisible}
-            onChange={() => handleToggleVisibility(details.name, isVisible)}
+            onChange={() => handleToggleVisibility(details.id, isVisible)}
             className="sr-only peer"
           />
           <div className="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors"></div>
@@ -44,7 +44,7 @@ export const InstalledAddon = ({
         {/* Details Button */}
         <button
           className="cursor-pointer rounded-md bg-blue-500 px-2 py-1 text-xs font-medium text-white hover:bg-blue-600 transition-colors"
-          onClick={() => openAddonWindow(details.name)}
+          onClick={() => openAddonWindow(details.id)}
         >
           Details
         </button>
@@ -52,7 +52,7 @@ export const InstalledAddon = ({
         {/* Remove Button */}
         <button
           className="cursor-pointer rounded-md bg-red-500 px-2 py-1 text-xs font-medium text-white hover:bg-red-600 transition-colors"
-          onClick={() => handleRemove(details.name)}
+          onClick={() => handleRemove(details.id)}
         >
           Remove
         </button>

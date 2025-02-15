@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AddonContext } from "../../../components/AddonManagerContext/AddonContext";
 import type { CanadaTravelAdvisoryController } from "../CanadaTravelAdvisoryController";
+import { ADDONS } from "../../../config";
 
 const advisoryLevels = [
   { text: "Canada", color: "bg-blue-500" },   
@@ -19,7 +20,7 @@ export const CanadaTravelAdvisoryModal = () => {
   useEffect(() => {
     if (!addonManager) return;
     console.log("[CanadaTravelAdvisoryModal] Loading CanadaTravelAdvisoryController...");
-    const controller = addonManager.getAddonController("canadaTravelAdvisory") as CanadaTravelAdvisoryController;
+    const controller = addonManager.getAddonController(ADDONS.CANADA_TRAVEL_ADVISORY) as CanadaTravelAdvisoryController;
     setAddonController(controller);
   }, [addonManager]);
 
