@@ -7,7 +7,8 @@ const advisoryLevels = [
   { text: "Take normal security precautions", color: "bg-green-500" },
   { text: "Exercise a high degree of caution", color: "bg-yellow-300" },       
   { text: "Avoid non-essential travel", color: "bg-orange-500" },            
-  { text: "Avoid all travel", color: "bg-red-500" }, 
+  { text: "Avoid all travel", color: "bg-red-500" },
+  { text: "No data", color: "bg-gray-500" }, 
 ];
 
 export const CanadaTravelAdvisoryModal = () => {
@@ -41,6 +42,7 @@ export const CanadaTravelAdvisoryModal = () => {
         ))}
       </div>
       <p className="m-2">Last Updated: {lastUpdate}</p>
+      <p className="m-2">Data Provided By: open.canada.ca</p>
     </div>
   );
 };
