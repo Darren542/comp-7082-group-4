@@ -16,3 +16,23 @@ Steps to add a new addon to the project:
 5. Edit the AddonManager Component's getAddonComponent method to return the Modal Component for your addon.
 
 6. Edit the constructor of the AddonManagerController to create an instance of your addon's controller class and add it to the list of controllers.
+
+
+
+### How to run the app from scratch
+
+Backend:
+
+change env.local.example to .env
+change the supabase url + anon key to ones in the project settings on Supabase
+change the port from 5000 to 5001 
+npm install
+npm run dev
+
+Frontend:
+
+change the env.example to .env
+add cesium token to .env
+change exisiting ports from 5000 to 5001 (Do the search tab on the left tab to find all 5000 ports) as of Feb 16th because it being hardcoded
+npm install
+npm run dev
