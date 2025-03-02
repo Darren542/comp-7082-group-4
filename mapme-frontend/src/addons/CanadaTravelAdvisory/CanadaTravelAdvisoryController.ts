@@ -20,7 +20,7 @@ export class CanadaTravelAdvisoryController implements AddonControlInterface {
   private state = AddonState.uninstalled;
   public groupId = ADDONS.CANADA_TRAVEL_ADVISORY;
   // TODO - Add a backend API to Cache and fetch new data.
-  private apiLocation = "http://localhost:5000/api/canadaTravelAdvisory";
+  private apiLocation = "http://localhost:5001/api/canadaTravelAdvisory";
   private countryGeoJsonDataSource: Cesium.GeoJsonDataSource | null = null;
   private travelAdvisoryJson: any = null;
   private loading = false;
