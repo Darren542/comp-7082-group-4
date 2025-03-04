@@ -30,8 +30,8 @@ export const TicketmasterEventsModal = () => {
     // Initial stats update
     updateStats();
     
-    // Set up interval to periodically update stats
-    const interval = setInterval(updateStats, 10000); // Update every 10 seconds
+    // Set up interval to upade stats every 10 seconds
+    const interval = setInterval(updateStats, 10000); 
     
     return () => clearInterval(interval);
   }, [addonController]);

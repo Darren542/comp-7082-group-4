@@ -22,7 +22,7 @@ export const installedAddons = [
     desc: "Ticketmaster Events", 
     active: true,
     installed: true,
-    apiLocation: "http://localhost:5001/api/ticketmaster"
+    apiLocation: "http://localhost:5001/api/events"
   },
   { 
     id: "testAddon2",

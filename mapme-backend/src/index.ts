@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth";
+import ticketmasterRoutes from "./routes/ticketmaster";
 import { mockData } from "./mock";
 
 dotenv.config();
@@ -26,6 +27,8 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/auth", authRoutes); 
+//console.log("ticketmasterroutes ", ticketmasterRoutes);
+app.use("/api", ticketmasterRoutes);
 
 app.get("/api/points", (req, res) => {
   // Mock points data

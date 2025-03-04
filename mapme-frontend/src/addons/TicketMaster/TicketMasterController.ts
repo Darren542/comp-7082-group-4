@@ -24,6 +24,7 @@ interface Event {
   };
 }
 
+//events when zoomed out and clustered
 interface ClusteredEvent {
   latitude: number;
   longitude: number;
@@ -34,18 +35,21 @@ interface ClusteredEvent {
 export class TicketmasterEventsController implements AddonControlInterface {
   private state = AddonState.uninstalled;
   public groupId = ADDONS.TICKETMASTER_EVENTS;
-  private apiEndpoint = "/api/events";
+  private apiEndpoint = "http://localhost:5001/api/events";
   private eventsDataSource: Cesium.CustomDataSource | null = null;
   private clustersDataSource: Cesium.CustomDataSource | null = null;
   private events: Record<string, Event> = {};
-  private loadedAreas = new Map<string, number>(); // Cache of loaded areas with timestamps
-  private cacheExpiryTime = 5 * 60 * 1000; // 5 minutes cache expiry
+  // Cache of loaded areas with timestamps
+  private loadedAreas = new Map<string, number>(); 
+  // cache lasts for 5 minutes
+  private cacheExpiryTime = 5 * 60 * 1000; 
   private loading = false;
   private cameraMoveHandler: (() => void) | null = null;
+  private clickHandlerSet = false;
 
   constructor(private cesium: CesiumContextType) {
     this.cesium = cesium;
-    // Create debounced handler for camera movement
+    // handles when user moves the camera multiple times in a short period
     this.cameraMoveHandler = debounce(this.handleCameraMove.bind(this), 500);
   }
 
@@ -137,12 +141,15 @@ export class TicketmasterEventsController implements AddonControlInterface {
     this.clustersDataSource.show = true;
     
     // Set up camera movement listener
+    console.log(`[${this.groupId}] Setting up camera movement listener`);
     viewer.camera.moveEnd.addEventListener(this.cameraMoveHandler!);
     
     // Initial load based on current camera position
+    console.log(`[${this.groupId}] Triggering initial camera move handler`);
     this.handleCameraMove();
     
     this.state = AddonState.running;
+    console.log(`[${this.groupId}] Started successfully, state is now:`, this.state);
     return Promise.resolve(true);
   }
 
@@ -258,13 +265,20 @@ export class TicketmasterEventsController implements AddonControlInterface {
   }
 
   /**
-   * Handler for camera movement - fetches events for the current view
+   * Handler for camera movement. fetches events for the current view
    */
   private handleCameraMove(): void {
-    if (this.state !== AddonState.running) return;
+    console.log(`[${this.groupId}] handleCameraMove called, addon state:`, this.state);
+    if (this.state !== AddonState.running) {
+      console.log(`[${this.groupId}] Addon not running, state:`, this.state);
+      return;
+    }
     
     const viewer = this.cesium.getViewer();
-    if (!viewer) return;
+    if (!viewer) {
+      console.log(`[${this.groupId}] Viewer not available`);
+      return;
+    }
     
     // Get current camera position and center of view
     const center = viewer.camera.pickEllipsoid(
@@ -276,7 +290,7 @@ export class TicketmasterEventsController implements AddonControlInterface {
     
     if (!center) return;
     
-    // Convert to lat/lon
+    // Convert Cartesian3 to lat/long
     const cartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(center);
     const longitude = Cesium.Math.toDegrees(cartographic.longitude);
     const latitude = Cesium.Math.toDegrees(cartographic.latitude);
@@ -316,23 +330,27 @@ export class TicketmasterEventsController implements AddonControlInterface {
    * Fetches events for a specific area and updates the display
    */
   private async loadEventsForArea(latitude: number, longitude: number, radius: number, zoomLevel: number): Promise<void> {
-    // Round coordinates to create a cache key with reasonable granularity
-    const precision = zoomLevel > 10 ? 2 : 1; // More precise at higher zoom levels
+    console.log(`[${this.groupId}] loadEventsForArea called with lat:${latitude}, lon:${longitude}, radius:${radius}`);
+
+    //percision depending on zoom level
+    const precision = zoomLevel > 10 ? 2 : 1; 
     const roundedLat = Number(latitude.toFixed(precision));
     const roundedLon = Number(longitude.toFixed(precision));
     const areaKey = `${roundedLat}-${roundedLon}-${radius}`;
     
-    // Check if we've loaded this area recently
+    // Check if area is already in cache
     const lastLoaded = this.loadedAreas.get(areaKey);
     if (lastLoaded && Date.now() - lastLoaded < this.cacheExpiryTime) {
-      // Area data is still valid, just update the display based on zoom level
+      console.log(`[${this.groupId}] Using cached data for area ${areaKey}`);
       this.updateDisplay(zoomLevel);
       return;
     }
     
     try {
-      // Fetch events from our backend
-      const response = await fetch(`${this.apiEndpoint}?latitude=${latitude}&longitude=${longitude}&radius=${radius}`);
+      // Fetch events from backend
+      const apiUrl = `${this.apiEndpoint}?latitude=${latitude}&longitude=${longitude}&radius=${radius}`;
+      console.log(`[${this.groupId}] Fetching events from: ${apiUrl}`);
+      const response = await fetch(apiUrl);
       if (!response.ok) throw new Error('Failed to fetch events');
       
       const data = await response.json();
@@ -353,7 +371,7 @@ export class TicketmasterEventsController implements AddonControlInterface {
           this.events[event.id] = event;
         });
         
-        // Update the map display
+        // Update the map 
         this.loadedAreas.set(areaKey, Date.now());
         this.updateDisplay(zoomLevel);
       }
@@ -368,17 +386,43 @@ export class TicketmasterEventsController implements AddonControlInterface {
   private updateDisplay(zoomLevel: number): void {
     if (!this.eventsDataSource || !this.clustersDataSource) return;
     
+    console.log(`[${this.groupId}] Updating display for zoom level: ${zoomLevel}`);
+    
     // Clear existing entities
     this.eventsDataSource.entities.removeAll();
     this.clustersDataSource.entities.removeAll();
     
-    if (zoomLevel >= 12) {
-      // High zoom - show individual events
+    // Configure viewer for infobox display
+    const viewer = this.cesium.getViewer();
+    if (viewer) {
+      viewer.infoBox.frame.setAttribute('sandbox', 'allow-same-origin allow-popups allow-forms');
+    }
+    
+    // Very high zoom - show detailed individual events with full information
+    if (zoomLevel >= 15) {
+      console.log(`[${this.groupId}] Showing detailed individual events`);
       this.displayIndividualEvents();
       this.eventsDataSource.show = true;
       this.clustersDataSource.show = false;
+      
+      // Make sure infobox is visible
+      if (viewer) {
+        viewer.scene.screenSpaceCameraController.enableZoom = true;
+      }
+    } else if (zoomLevel >= 12) {
+      // High zoom - show individual events with basic information
+      console.log(`[${this.groupId}] Showing individual events`);
+      this.displayIndividualEvents();
+      this.eventsDataSource.show = true;
+      this.clustersDataSource.show = false;
+      
+      // Make sure infobox is visible
+      if (viewer) {
+        viewer.scene.screenSpaceCameraController.enableZoom = true;
+      }
     } else {
       // Low zoom - show clusters
+      console.log(`[${this.groupId}] Showing clustered events`);
       this.displayClusteredEvents(zoomLevel);
       this.eventsDataSource.show = false;
       this.clustersDataSource.show = true;
@@ -389,8 +433,16 @@ export class TicketmasterEventsController implements AddonControlInterface {
    * Displays individual event markers
    */
   private displayIndividualEvents(): void {
-    if (!this.eventsDataSource) return;
+    const eventsDataSource = this.eventsDataSource;
+    if (!eventsDataSource) return;
     
+    const viewer = this.cesium.getViewer();
+    if (!viewer) return;
+    
+    // Group events by location
+    const eventsByLocation: Record<string, Event[]> = {};
+    
+    // First, group all events by their location
     Object.values(this.events).forEach(event => {
       const venue = event._embedded?.venues?.[0];
       if (!venue?.location) return;
@@ -400,28 +452,119 @@ export class TicketmasterEventsController implements AddonControlInterface {
       
       if (isNaN(lat) || isNaN(lon)) return;
       
-      this.eventsDataSource!.entities.add({
-        id: `event-${event.id}`,
-        position: Cesium.Cartesian3.fromDegrees(lon, lat),
-        point: {
-          pixelSize: 10,
-          color: Cesium.Color.RED,
-          outlineColor: Cesium.Color.WHITE,
-          outlineWidth: 2
-        },
-        label: {
-          text: event.name,
-          font: '12px sans-serif',
-          fillColor: Cesium.Color.WHITE,
-          outlineColor: Cesium.Color.BLACK,
-          outlineWidth: 2,
-          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-          pixelOffset: new Cesium.Cartesian2(0, -15),
-          show: false // Only show on hover
-        }
-      });
+      // Create a location key with reasonable precision
+      const locationKey = `${lat.toFixed(5)}-${lon.toFixed(5)}`;
+      
+      if (!eventsByLocation[locationKey]) {
+        eventsByLocation[locationKey] = [];
+      }
+      
+      eventsByLocation[locationKey].push(event);
     });
+    
+    // Now create entities for each location
+    Object.entries(eventsByLocation).forEach(([locationKey, eventsAtLocation]) => {
+        // Sort events by date (most recent first)
+        console.log(`[${this.groupId}] Sorting events for location ${locationKey}:`);
+        eventsAtLocation.forEach(event => {
+          console.log(`Event: ${event.name}, Date: ${event.dates?.start?.localDate}`);
+        });
+        
+        eventsAtLocation.sort((a, b) => {
+            const dateA = a.dates?.start?.localDate ? new Date(a.dates.start.localDate) : new Date(0);
+            const dateB = b.dates?.start?.localDate ? new Date(b.dates.start.localDate) : new Date(0);
+            
+            // Sort by soonest date first (ascending order)
+            const comparison = dateA.getTime() - dateB.getTime();
+            console.log(`Comparing ${a.name} (${dateA.toISOString()}) with ${b.name} (${dateB.toISOString()}) = ${comparison}`);
+            return comparison;
+        });
+        
+        console.log(`[${this.groupId}] Sorted events:`);
+        eventsAtLocation.forEach(event => {
+          console.log(`Event: ${event.name}, Date: ${event.dates?.start?.localDate}`);
+        });
+        
+        // Get the most recent event
+        const mostRecentEvent = eventsAtLocation[0];
+        const venue = mostRecentEvent._embedded?.venues?.[0];
+        
+        if (!venue?.location) return;
+        
+        const lat = parseFloat(venue.location.latitude);
+        const lon = parseFloat(venue.location.longitude);
+        
+        // description with all events at venue
+        let htmlDescription = `
+          <div style="padding: 10px;">
+            <h2 style="color: #d32f2f; margin-bottom: 10px;">Events at ${venue.name || 'this location'}</h2>
+            <p>${eventsAtLocation.length} event${eventsAtLocation.length > 1 ? 's' : ''} found</p>
+            <ul style="list-style-type: none; padding: 0; margin-top: 10px;">
+        `;
+        
+        // each individual event at the venue
+        eventsAtLocation.forEach(event => {
+          const eventDate = event.dates?.start?.localDate 
+            ? new Date(event.dates.start.localDate).toLocaleDateString() 
+            : 'Date TBA';
+            
+          htmlDescription += `
+            <li style="margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px;">
+              <h3 style="color: #1976d2; margin: 0 0 5px 0;">${event.name}</h3>
+              <p><strong>Venue:</strong> ${venue.name || 'TBA'}</p>
+              <p><strong>Date:</strong> ${eventDate}</p>
+              ${event.url ? `<p><a href="${event.url}" target="_blank" style="color: #1976d2;">Buy Tickets</a></p>` : ''}
+            </li>
+          `;
+        });
+        
+        htmlDescription += `
+            </ul>
+          </div>
+        `;
+        
+        // Create a label that shows the count if there are multiple events
+        const labelText = eventsAtLocation.length > 1 
+          ? `${mostRecentEvent.name} (+${eventsAtLocation.length - 1} more)`
+          : mostRecentEvent.name;
+        
+        // Add the entity to the data source
+        eventsDataSource.entities.add({
+          id: `event-location-${locationKey}`,
+          position: Cesium.Cartesian3.fromDegrees(lon, lat),
+          point: {
+            pixelSize: 12,
+            color: Cesium.Color.RED,
+            outlineColor: Cesium.Color.WHITE,
+            outlineWidth: 2
+          },
+          //label of the event
+          label: {
+            text: labelText,
+            font: '18px sans-serif',
+            fillColor: Cesium.Color.WHITE,
+            outlineColor: Cesium.Color.BLACK,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset: new Cesium.Cartesian2(0, -20),
+            show: true
+          },
+          description: htmlDescription,
+          
+        });
+      });
+    
+    // opens the infobox when an event is clicked
+    if (!this.clickHandlerSet) {
+      viewer.screenSpaceEventHandler.setInputAction((click: any) => {
+        const pickedObject = viewer.scene.pick(click.position);
+        if (Cesium.defined(pickedObject) && pickedObject.id) {
+          viewer.selectedEntity = pickedObject.id;
+        }
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      
+      this.clickHandlerSet = true;
+    }
   }
   
   /**
@@ -462,7 +605,7 @@ export class TicketmasterEventsController implements AddonControlInterface {
     
     // Display clusters
     Object.values(clusters).forEach(cluster => {
-      // Scale the point size based on count
+      // Scale the point size based on count of events
       const size = Math.min(30, 10 + (cluster.count * 0.5));
       
       this.clustersDataSource!.entities.add({
@@ -476,10 +619,9 @@ export class TicketmasterEventsController implements AddonControlInterface {
         },
         label: {
           text: `${cluster.count} events`,
-          font: '14px sans-serif',
+          font: '18px sans-serif',
           fillColor: Cesium.Color.WHITE,
           outlineColor: Cesium.Color.BLACK,
-          outlineWidth: 2,
           style: Cesium.LabelStyle.FILL_AND_OUTLINE,
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
           pixelOffset: new Cesium.Cartesian2(0, -size - 5),
