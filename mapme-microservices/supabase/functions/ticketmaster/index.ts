@@ -4,29 +4,33 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import ngeohash from "npm:ngeohash"
 
 const API_KEY = Deno.env.get("TICKETMASTER_API_KEY");
 const BASE_TICKETMASTER_API_URL = "https://app.ticketmaster.com";
 const TICKETMASTER_API_URL = "https://app.ticketmaster.com/discovery/v2/events/";
-// const CACHE_TTL = 3600; // Cache expires in 1 hour
 
-// const kv = await Deno.openKv(); // Open Deno KV storage
-
-async function fetchAndCacheResults(cacheKey: string, apiUrl: string) {
-  // Check if results are in Cache first
-  // const cached = await kv.get<{ data: any[]; timestamp: number }>([cacheKey])
-  // if (cached.value) {
-  //   console.log("Cache hit:", cacheKey);
-  //   return cached.value.data;
-  // }
-
-  // console.log("Cache miss:", cacheKey);
-  const allEvents = await fetchAllEvents(apiUrl);
-
-  // Store results in cache
-  // await kv.set([cacheKey], { data: allEvents, timestamp: Date.now() }, { expireIn: CACHE_TTL });
-
-  return allEvents
+interface Event {
+  id: string;
+  name: string;
+  url: string;
+  dates: {
+    start: {
+      localDate: string;
+    },
+    end: {
+      localDate: string;
+    }
+  };
+  _embedded?: {
+    venues?: Array<{
+      name: string;
+      location?: {
+        latitude: string;
+        longitude: string;
+      };
+    }>;
+  };
 }
 
 async function fetchAllEvents(url: string, page = 0, collectedData: any[] = []): Promise<any[]> {
@@ -34,7 +38,39 @@ async function fetchAllEvents(url: string, page = 0, collectedData: any[] = []):
   const data = await response.json();
 
   if (data?._embedded?.events) {
-    collectedData.push(...data._embedded.events);
+    // Create custom Event object for every event and add to array
+    for (const event of data?._embedded?.events) {
+      const eventToAdd: Event = {
+        id: event.id,
+        name: event.name,
+        url: event.url ?? "",
+        dates: {
+          start: {
+            localDate: event.dates?.start?.localDate
+          },
+          end: {
+            localDate: event.dates?.end?.localDate
+          }
+        },
+        _embedded: {
+          venues: event._embedded?.venues?.map((venue: {
+            name: string;
+            location: {
+              latitude: string;
+              longitude: string;
+            };
+          }) => ({
+            name: venue.name,
+            location: {
+              latitude: venue.location?.latitude,
+              longitude: venue.location?.longitude,
+            }
+          })) ?? []
+        }
+      }
+
+      collectedData.push(eventToAdd);
+    }
   };
 
   if (data?.page?.totalPages > page + 1) {
@@ -43,7 +79,6 @@ async function fetchAllEvents(url: string, page = 0, collectedData: any[] = []):
     return fetchAllEvents(next_url, page + 1, collectedData);
   }
 
-  console.log("Collected data:", collectedData);
   return collectedData;
 }
 
@@ -59,30 +94,28 @@ function paginateResults(data: any[], page: number, pageSize: number) {
 }
 
 Deno.serve(async (req) => {
-  const { latlong, city } = await req.json();
-  console.log("City:", city);
-  console.log("Latlong:", latlong);
+  const { latitude, longitude, city, radius } = await req.json();
 
-  const page = 0;
-  const pageSize = 20;
-
-  if (!latlong && !city) {
-    return new Response(JSON.stringify({ error: "latlong or city is required"}), {
+  if (!((latitude && longitude) || city)) {
+    return new Response(JSON.stringify({ error: "Either Latitude and Longitude or City is Required"}), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
   }
 
   const params = new URLSearchParams({ apikey: API_KEY || "" });
-  if (latlong) params.append("latlong", latlong);
+  if (latitude && longitude) {
+    // Create geohash
+    const geohash = ngeohash.encode(latitude, longitude);
+    console.log(geohash);
+    params.append("geoPoint", geohash);
+  }
   if (city) params.append("city", city);
-
-  const cacheKey = `ticketmaster_${latlong || city}`;
 
   try {
     const apiurl = `${TICKETMASTER_API_URL}?${params.toString()}`;
     console.log(`Query URL: ${apiurl}`)
-    const allEvents = await fetchAndCacheResults(cacheKey, apiurl);
+    const allEvents = await fetchAllEvents(apiurl);
 
     // Paginate results for the clinet
     // const paginatedResponse = paginateResults(allEvents, page, pageSize);
@@ -97,16 +130,6 @@ Deno.serve(async (req) => {
       headers: { "Content-Type": "application/json" },
     });
   }
-
-  // const { name } = await req.json()
-  // const data = {
-  //   message: `Hello ${name}!`,
-  // }
-
-  // return new Response(
-  //   JSON.stringify(data),
-  //   { headers: { "Content-Type": "application/json" } },
-  // )
 })
 
 /* To invoke locally:
