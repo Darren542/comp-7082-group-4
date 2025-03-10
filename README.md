@@ -33,6 +33,7 @@ Frontend:
 
 change the env.example to .env
 add cesium token to .env
+add supabase url + anon key to .env
 change exisiting ports from 5000 to 5001 (Do the search tab on the left tab to find all 5000 ports) as of Feb 16th because it being hardcoded
 npm install
 npm run dev

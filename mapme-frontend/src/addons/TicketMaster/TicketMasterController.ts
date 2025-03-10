@@ -4,6 +4,7 @@ import * as Cesium from "cesium";
 import { ADDONS } from "../../config";
 import { debounce } from "lodash";
 import axios from "axios";
+import { createClient } from "@supabase/supabase-js";
 
 interface Event {
   id: string;
@@ -36,7 +37,6 @@ interface ClusteredEvent {
 export class TicketmasterEventsController implements AddonControlInterface {
   private state = AddonState.uninstalled;
   public groupId = ADDONS.TICKETMASTER_EVENTS;
-  private apiEndpoint = "https://qsnuignbeuiqzmiksjty.supabase.co/functions/v1/ticketmaster";
   private eventsDataSource: Cesium.CustomDataSource | null = null;
   private clustersDataSource: Cesium.CustomDataSource | null = null;
   private events: Record<string, Event> = {};
@@ -47,6 +47,7 @@ export class TicketmasterEventsController implements AddonControlInterface {
   private loading = false;
   private cameraMoveHandler: (() => void) | null = null;
   private clickHandlerSet = false;
+  private supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
   constructor(private cesium: CesiumContextType) {
     this.cesium = cesium;
@@ -256,10 +257,6 @@ export class TicketmasterEventsController implements AddonControlInterface {
   setOptions(options: Record<string, any>): void {
     console.log(`[${this.groupId}] Setting options...`, options);
     
-    if (options.apiEndpoint) {
-      this.apiEndpoint = options.apiEndpoint;
-    }
-    
     if (options.cacheExpiryTime) {
       this.cacheExpiryTime = options.cacheExpiryTime;
     }
@@ -348,20 +345,22 @@ export class TicketmasterEventsController implements AddonControlInterface {
     }
     
     try {
-      // Fetch events from backend
-      // const apiUrl = `${this.apiEndpoint}?latitude=${latitude}&longitude=${longitude}&radius=${radius}`;
-      // console.log(`[${this.groupId}] Fetching events from: ${apiUrl}`);
-      const body = {latitude, longitude, radius};
-      const response = await axios.post(this.apiEndpoint, body, {
-        headers: {
-          'Content-Type': 'application/json'
+      // Fetch events from microservice
+      console.log(`[${this.groupId}] Fetching events`);
+      const { data, error } = await this.supabase.functions.invoke('ticketmaster', {
+        body: {
+          latitude,
+          longitude,
+          radius,
         }
-      });
-      
-      const data = await response.data;
-      
+      }) as { data: Event[], error: any };
+
+      if (error) {
+        console.log(`[${this.groupId}] Error invoking Ticketmaster Microservice`);
+      }
+
       // Process and store events
-      if (data._embedded && data._embedded.events) {
+      if (data) {
         // Clear existing entities
         if (this.eventsDataSource) {
           this.eventsDataSource.entities.removeAll();
@@ -372,7 +371,7 @@ export class TicketmasterEventsController implements AddonControlInterface {
         }
         
         // Store the events
-        data._embedded.events.forEach((event: Event) => {
+        data.forEach((event: Event) => {
           this.events[event.id] = event;
         });
         

@@ -5,6 +5,7 @@
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import ngeohash from "npm:ngeohash"
+import { corsHeaders } from "../_shared/cors.ts"
 
 const API_KEY = Deno.env.get("TICKETMASTER_API_KEY");
 const BASE_TICKETMASTER_API_URL = "https://app.ticketmaster.com";
@@ -76,8 +77,8 @@ async function fetchAllEvents(url: string, page = 0, collectedData: any[] = []):
   if (data?.page?.totalPages > page + 1) {
     const next_url = BASE_TICKETMASTER_API_URL + data?._links?.next.href;
     console.log("Next URL:", next_url);
-    return fetchAllEvents(next_url, page + 1, collectedData);
-  }
+    const nextData = await fetchAllEvents(next_url, page + 1, collectedData);
+    return nextData;  }
 
   return collectedData;
 }
@@ -94,42 +95,65 @@ function paginateResults(data: any[], page: number, pageSize: number) {
 }
 
 Deno.serve(async (req) => {
-  const { latitude, longitude, city, radius } = await req.json();
-
-  if (!((latitude && longitude) || city)) {
-    return new Response(JSON.stringify({ error: "Either Latitude and Longitude or City is Required"}), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+  // For CORS
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
   }
-
-  const params = new URLSearchParams({ apikey: API_KEY || "" });
-  if (latitude && longitude) {
-    // Create geohash
-    const geohash = ngeohash.encode(latitude, longitude);
-    console.log(geohash);
-    params.append("geoPoint", geohash);
-  }
-  if (city) params.append("city", city);
 
   try {
-    const apiurl = `${TICKETMASTER_API_URL}?${params.toString()}`;
-    console.log(`Query URL: ${apiurl}`)
-    const allEvents = await fetchAllEvents(apiurl);
+    const { latitude, longitude, city, radius } = await req.json();
+    console.log("Latitude", latitude);
 
-    // Paginate results for the clinet
-    // const paginatedResponse = paginateResults(allEvents, page, pageSize);
+    if (!((latitude && longitude) || city)) {
+      return new Response(JSON.stringify({ error: "Either Latitude and Longitude or City is Required"}), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    return new Response(JSON.stringify(allEvents), {
-      headers: { "Content-Type": "application/json" },
-    });
+    const params = new URLSearchParams({ apikey: API_KEY || "" });
+    if (latitude && longitude) {
+      // Create geohash
+      const geohash = ngeohash.encode(latitude, longitude);
+      console.log(geohash);
+      params.append("geoPoint", geohash);
+    }
+    if (city) params.append("city", city);
+
+    try {
+      const apiurl = `${TICKETMASTER_API_URL}?${params.toString()}`;
+      console.log(`Query URL: ${apiurl}`)
+      const allEvents = await fetchAllEvents(apiurl);
+
+      console.log("All Events:", allEvents);
+      console.log("Num of events", allEvents.length);
+
+      // Paginate results for the clinet
+      // const paginatedResponse = paginateResults(allEvents, page, pageSize);
+
+      return new Response(JSON.stringify(allEvents), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    } catch (error) {
+      console.log(error);
+      return new Response(JSON.stringify({ error: "Failed to fetch data" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
   } catch (error) {
-    console.log(error);
-    return new Response(JSON.stringify({ error: "Failed to fetch data" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      headers: { 
+        ...corsHeaders,
+        'Content-Type': 'application/json' 
+      },
+      status: 400,
+    })
   }
+
+  
 })
 
 /* To invoke locally:

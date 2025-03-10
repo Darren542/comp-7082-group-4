@@ -3,7 +3,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth";
-import ticketmasterRoutes from "./routes/ticketmaster";
 import { mockData } from "./mock";
 
 dotenv.config();
@@ -27,18 +26,6 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/auth", authRoutes); 
-//console.log("ticketmasterroutes ", ticketmasterRoutes);
-app.use("/api", ticketmasterRoutes);
-
-app.get("/api/points", (req, res) => {
-  // Mock points data
-  const points = [
-    { lat: 40.7128, lon: -74.006 }, // New York
-    { lat: 34.0522, lon: -118.2437 }, // Los Angeles
-    { lat: 51.5074, lon: -0.1278 }, // London
-  ];
-  res.json(points);
-});
 
 app.get("/api/addons", (req, res) => {
   // Mock installed data
