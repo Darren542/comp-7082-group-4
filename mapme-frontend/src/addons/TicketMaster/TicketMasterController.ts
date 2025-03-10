@@ -2,7 +2,8 @@ import { AddonControlInterface, AddonState } from "../../components/AddonManager
 import { CesiumContextType } from "../../components/CesiumContext/useCesiumContext";
 import * as Cesium from "cesium";
 import { ADDONS } from "../../config";
-import debounce from "lodash.debounce";
+import { debounce } from "lodash";
+import axios from "axios";
 
 interface Event {
   id: string;
@@ -35,7 +36,7 @@ interface ClusteredEvent {
 export class TicketmasterEventsController implements AddonControlInterface {
   private state = AddonState.uninstalled;
   public groupId = ADDONS.TICKETMASTER_EVENTS;
-  private apiEndpoint = "http://localhost:5001/api/events";
+  private apiEndpoint = "https://qsnuignbeuiqzmiksjty.supabase.co/functions/v1/ticketmaster";
   private eventsDataSource: Cesium.CustomDataSource | null = null;
   private clustersDataSource: Cesium.CustomDataSource | null = null;
   private events: Record<string, Event> = {};
@@ -348,12 +349,16 @@ export class TicketmasterEventsController implements AddonControlInterface {
     
     try {
       // Fetch events from backend
-      const apiUrl = `${this.apiEndpoint}?latitude=${latitude}&longitude=${longitude}&radius=${radius}`;
-      console.log(`[${this.groupId}] Fetching events from: ${apiUrl}`);
-      const response = await fetch(apiUrl);
-      if (!response.ok) throw new Error('Failed to fetch events');
+      // const apiUrl = `${this.apiEndpoint}?latitude=${latitude}&longitude=${longitude}&radius=${radius}`;
+      // console.log(`[${this.groupId}] Fetching events from: ${apiUrl}`);
+      const body = {latitude, longitude, radius};
+      const response = await axios.post(this.apiEndpoint, body, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
-      const data = await response.json();
+      const data = await response.data;
       
       // Process and store events
       if (data._embedded && data._embedded.events) {
@@ -376,7 +381,11 @@ export class TicketmasterEventsController implements AddonControlInterface {
         this.updateDisplay(zoomLevel);
       }
     } catch (error) {
-      console.error(`[${this.groupId}] Error fetching Ticketmaster events:`, error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error:', error.response?.data || error.message);
+      } else {
+        console.error(`[${this.groupId}] Error fetching Ticketmaster events:`, error);
+      }
     }
   }
 
