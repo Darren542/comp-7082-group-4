@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import { CesiumContextType } from "../CesiumContext/useCesiumContext";
 import { CanadaTravelAdvisoryController } from "../../addons/CanadaTravelAdvisory/CanadaTravelAdvisoryController";
+import { TicketmasterEventsController } from "../../addons/TicketMaster/TicketMasterController";
 import { APP_CONFIG } from "../../config";
 
 /**
@@ -62,6 +63,7 @@ export class AddonManagerController extends EventEmitter {
     // Register available addons here
     this.addons = {
       canadaTravelAdvisory: new CanadaTravelAdvisoryController(cesium),
+      Ticketmaster: new TicketmasterEventsController(cesium),
     };
 
     this.cesium = cesium;
@@ -114,7 +116,7 @@ export class AddonManagerController extends EventEmitter {
     try {
       // Should going to have it fetch the full list of all addons for now
       // We can see about breaking this up later if needed
-      const response = await fetch("http://localhost:5000/api/addons");
+      const response = await fetch("http://localhost:5001/api/addons");
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }

@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from "react";
+import { createContext, useContext } from "react";
 import { AddonManagerController } from "./AddonManagerController";
 
 export const AddonContext = createContext<AddonManagerController | null>(null);

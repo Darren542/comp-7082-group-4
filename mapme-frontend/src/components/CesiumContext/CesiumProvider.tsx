@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from "react";
-import { Viewer, Entity, Cartesian3, Color, CustomDataSource, Ion } from "cesium";
+import { Viewer, Entity, Cartesian3, Color, CustomDataSource, Ion, Math } from "cesium";
 import { CesiumContext } from "./useCesiumContext";
 import { Header } from "../Header";
 import { APP_CONFIG } from "../../config";
@@ -25,7 +25,29 @@ export const CesiumProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       terrainProvider: undefined,
     });
 
+    // gets center coordiantes of the map
+    viewerRef.current.camera.moveEnd.addEventListener(() => {
+      if (viewerRef.current) {
+        const center = viewerRef.current.camera.pickEllipsoid(
+          new Cartesian3(
+            viewerRef.current.canvas.clientWidth / 2,
+            viewerRef.current.canvas.clientHeight / 2
+          )
+        );
+        
+        if (center) {
+          // Convert Cartesian3 to longitude/latitude
+          const cartographic = viewerRef.current.scene.globe.ellipsoid.cartesianToCartographic(center);
+          const longitude = Math.toDegrees(cartographic.longitude);
+          const latitude = Math.toDegrees(cartographic.latitude);
+          
+          console.log("Map center:", { longitude, latitude });
+        }
+      }
+    });
+
     setViewer(viewerRef.current);
+  
 
     return () => {
       if (viewerRef.current) {
