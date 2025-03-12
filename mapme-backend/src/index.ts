@@ -7,7 +7,7 @@ import { mockData } from "./mock";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 function updateAddon(id: string, active: boolean, installed: boolean) {
   const addon = mockData.installedAddons.find((addon) => addon.id === id);
@@ -26,16 +26,6 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/auth", authRoutes); 
-
-app.get("/api/points", (req, res) => {
-  // Mock points data
-  const points = [
-    { lat: 40.7128, lon: -74.006 }, // New York
-    { lat: 34.0522, lon: -118.2437 }, // Los Angeles
-    { lat: 51.5074, lon: -0.1278 }, // London
-  ];
-  res.json(points);
-});
 
 app.get("/api/addons", (req, res) => {
   // Mock installed data

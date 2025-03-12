@@ -6,7 +6,7 @@ export const installedAddons = [
     desc: "Latest travel advisories for Canada",
     active: true,
     installed: true,
-    apiLocation: "http://localhost:5000/api/canadaTravelAdvisory",
+    apiLocation: "http://localhost:5001/api/canadaTravelAdvisory",
   },
   { 
     id: "testAddon",
@@ -14,7 +14,15 @@ export const installedAddons = [
     desc: "Test Points Desc", 
     active: true, 
     installed: true,
-    apiLocation: "http://localhost:5000/api/testAddon"
+    apiLocation: "http://localhost:5001/api/testAddon"
+  },
+  { 
+    id: "Ticketmaster",
+    name: "Ticketmaster", 
+    desc: "Ticketmaster Events", 
+    active: true,
+    installed: true,
+    apiLocation: "http://localhost:5001/api/events"
   },
   { 
     id: "testAddon2",
@@ -22,7 +30,7 @@ export const installedAddons = [
     desc: "Test Points Desc 2", 
     active: false, 
     installed: false,
-    apiLocation: "http://localhost:5000/api/testAddon2"
+    apiLocation: "http://localhost:5001/api/testAddon2"
   },
   { 
     id: "testAddon3",
@@ -30,7 +38,7 @@ export const installedAddons = [
     desc: "Test Points Desc 3", 
     active: false, 
     installed: false,
-    apiLocation: "http://localhost:5000/api/testAddon2"
+    apiLocation: "http://localhost:5001/api/testAddon2"
   },
   { 
     id: "testAddon4",
@@ -38,6 +46,6 @@ export const installedAddons = [
     desc: "Test Points Desc 4", 
     active: false,
     installed: true,
-    apiLocation: "http://localhost:5000/api/testAddon2"
+    apiLocation: "http://localhost:5001/api/testAddon2"
   }
 ];

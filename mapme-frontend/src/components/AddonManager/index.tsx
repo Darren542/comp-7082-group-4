@@ -3,6 +3,7 @@ import useAddonManager from "./hooks/useAddonManager";
 import { AddonWindow } from "../AddonWindow";
 import { CanadaTravelAdvisoryModal } from "../../addons/CanadaTravelAdvisory/CanadaTravelAdvisoryModal";
 import { ADDONS } from "../../config";
+import { TicketmasterEventsModal } from "../../addons/TicketMaster/TicketMasterModal";
 
 /**
  * This function returns the component for the addon based on the addonId.
@@ -12,6 +13,8 @@ const getAddonComponent = (addonId: string) => {
   switch (addonId) {
     case ADDONS.CANADA_TRAVEL_ADVISORY:
       return <CanadaTravelAdvisoryModal />;
+    case ADDONS.TICKETMASTER_EVENTS:
+      return <TicketmasterEventsModal />;
     default:
       return <p>No Details Available</p>
   }
