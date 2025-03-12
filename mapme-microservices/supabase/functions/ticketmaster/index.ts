@@ -7,7 +7,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import ngeohash from "npm:ngeohash"
 import { corsHeaders } from "../_shared/cors.ts"
 
-const API_KEY = Deno.env.get("TICKETMASTER_API_KEY");
+const API_KEY = Deno.env.get("TICKETMASTER_API_KEY") || "SHZDsJ239AJUxoG6hqguRAb1gQyAvksp";
 const BASE_TICKETMASTER_API_URL = "https://app.ticketmaster.com";
 const TICKETMASTER_API_URL = "https://app.ticketmaster.com/discovery/v2/events/";
 
@@ -75,8 +75,8 @@ async function fetchAllEvents(url: string, page = 0, collectedData: any[] = []):
   };
 
   if (data?.page?.totalPages > page + 1) {
-    const next_url = BASE_TICKETMASTER_API_URL + data?._links?.next.href;
-    console.log("Next URL:", next_url);
+    const next_url = BASE_TICKETMASTER_API_URL + data?._links?.next.href + "&apikey=" + API_KEY;
+    // console.log("Next URL:", next_url);
     const nextData = await fetchAllEvents(next_url, page + 1, collectedData);
     return nextData;  }
 
@@ -94,6 +94,12 @@ function paginateResults(data: any[], page: number, pageSize: number) {
   };
 }
 
+function getISODateString(date: Date) {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0))
+    .toISOString()
+    .replace(".000", "");
+}
+
 Deno.serve(async (req) => {
   // For CORS
   if (req.method === 'OPTIONS') {
@@ -101,8 +107,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { latitude, longitude, city, radius } = await req.json();
+    let { latitude, longitude, city, radius } = await req.json();
     console.log("Latitude", latitude);
+    console.log("Longitude", longitude);
+    console.log("Radius", radius);
 
     if (!((latitude && longitude) || city)) {
       return new Response(JSON.stringify({ error: "Either Latitude and Longitude or City is Required"}), {
@@ -115,8 +123,24 @@ Deno.serve(async (req) => {
     if (latitude && longitude) {
       // Create geohash
       const geohash = ngeohash.encode(latitude, longitude);
-      console.log(geohash);
+      if (parseInt(radius) > 100) {
+        radius = 100;
+      }
       params.append("geoPoint", geohash);
+      params.append("radius", radius);
+      params.append("unit", "km");
+      
+      // Today's date
+      const today = new Date();
+      
+      // Today's date + 1 week
+      const nextWeek = new Date(today);
+      nextWeek.setUTCDate(today.getUTCDate() + 14);
+      const nextWeekISO = getISODateString(nextWeek);
+      
+      console.log("Next week:", nextWeekISO);
+      
+      params.append("endDateTime", nextWeekISO);
     }
     if (city) params.append("city", city);
 
@@ -125,8 +149,8 @@ Deno.serve(async (req) => {
       console.log(`Query URL: ${apiurl}`)
       const allEvents = await fetchAllEvents(apiurl);
 
-      console.log("All Events:", allEvents);
-      console.log("Num of events", allEvents.length);
+      // console.log("All Events:", allEvents);
+      console.log("Num of events fetched", allEvents.length);
 
       // Paginate results for the clinet
       // const paginatedResponse = paginateResults(allEvents, page, pageSize);
