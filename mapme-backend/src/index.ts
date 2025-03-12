@@ -7,7 +7,7 @@ import { mockData } from "./mock";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 function updateAddon(id: string, active: boolean, installed: boolean) {
   const addon = mockData.installedAddons.find((addon) => addon.id === id);

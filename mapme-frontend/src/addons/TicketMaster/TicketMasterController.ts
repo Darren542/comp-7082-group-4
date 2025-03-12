@@ -538,27 +538,25 @@ export class TicketmasterEventsController implements AddonControlInterface {
         
         // Add the entity to the data source
         eventsDataSource.entities.add({
-          id: `event-location-${locationKey}`,
+          id: `${venue.name}`,
           position: Cesium.Cartesian3.fromDegrees(lon, lat),
-          point: {
-            pixelSize: 12,
-            color: Cesium.Color.RED,
-            outlineColor: Cesium.Color.WHITE,
-            outlineWidth: 2
+          billboard: {
+            image: 'mapPoint.png',
+            width: 40,
+            height: 40,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM
           },
           //label of the event
           label: {
             text: labelText,
-            font: '18px sans-serif',
+            font: '20px sans-serif',
             fillColor: Cesium.Color.WHITE,
-            outlineColor: Cesium.Color.BLACK,
             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
             verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
             pixelOffset: new Cesium.Cartesian2(0, -20),
             show: true
           },
           description: htmlDescription,
-          
         });
       });
     
@@ -581,8 +579,11 @@ export class TicketmasterEventsController implements AddonControlInterface {
   private displayClusteredEvents(zoomLevel: number): void {
     if (!this.clustersDataSource) return;
     
+    const viewer = this.cesium.getViewer();
+    if (!viewer) return;
+    
     // Group events by geographic region
-    const clusters: Record<string, ClusteredEvent> = {};
+    const clusters: Record<string, ClusteredEvent & { events: Event[] }> = {};
     const gridSize = this.getGridSizeForZoomLevel(zoomLevel);
     
     Object.values(this.events).forEach(event => {
@@ -604,17 +605,82 @@ export class TicketmasterEventsController implements AddonControlInterface {
           latitude: regionLat + gridSize/2, // center of grid cell
           longitude: regionLon + gridSize/2,
           count: 0,
-          regionKey
+          regionKey,
+          events: []
         };
       }
       
       clusters[regionKey].count++;
+      clusters[regionKey].events.push(event);
     });
     
     // Display clusters
     Object.values(clusters).forEach(cluster => {
       // Scale the point size based on count of events
       const size = Math.min(30, 10 + (cluster.count * 0.5));
+      
+      // Sort events by date (most recent first)
+      cluster.events.sort((a, b) => {
+        const dateA = a.dates?.start?.localDate ? new Date(a.dates.start.localDate) : new Date(0);
+        const dateB = b.dates?.start?.localDate ? new Date(b.dates.start.localDate) : new Date(0);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      // Create HTML description for the cluster with a dark background
+      let htmlDescription = `
+        <div style="padding: 10px; background-color: #212121; color: white;">
+          <h2 style="color: #d32f2f; margin-bottom: 10px;">Event Cluster</h2>
+          <p>${cluster.count} events in this area</p>
+          <div style="max-height: 400px; overflow-y: auto;">
+      `;
+      
+      // Group events by venue
+      const eventsByVenue: Record<string, Event[]> = {};
+      
+      cluster.events.forEach(event => {
+        const venue = event._embedded?.venues?.[0];
+        if (!venue) return;
+        
+        const venueName = venue.name || 'Unknown Venue';
+        if (!eventsByVenue[venueName]) {
+          eventsByVenue[venueName] = [];
+        }
+        eventsByVenue[venueName].push(event);
+      });
+      
+      // Add events grouped by venue with dark background and a white border
+      Object.entries(eventsByVenue).forEach(([venueName, venueEvents]) => {
+        htmlDescription += `
+          <div style="margin-top: 15px; padding: 10px; border-radius: 5px; border: 1px solid white;">
+            <h2 style="color: #d32f2f; margin-bottom: 10px;">${venueName}</h3>
+            <p>${venueEvents.length} event${venueEvents.length > 1 ? 's' : ''}</p>
+            <ul style="list-style-type: none; padding: 0; margin-top: 10px;">
+        `;
+        
+        venueEvents.forEach(event => {
+          const eventDate = event.dates?.start?.localDate 
+            ? new Date(event.dates.start.localDate).toLocaleDateString() 
+            : 'Date TBA';
+              
+          htmlDescription += `
+            <li style="margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px;">
+              <h3 style="color: #1976d2; margin: 0 0 5px 0;">${event.name}</h4>
+              <p><strong>Date:</strong> ${eventDate}</p>
+              ${event.url ? `<p><a href="${event.url}" target="_blank" style="color: #1976d2;">Buy Tickets</a></p>` : ''}
+            </li>
+          `;
+        });
+        
+        htmlDescription += `
+            </ul>
+          </div>
+        `;
+      });
+      
+      htmlDescription += `
+          </div>
+        </div>
+      `;
       
       this.clustersDataSource!.entities.add({
         id: `cluster-${cluster.regionKey}`,
@@ -634,9 +700,22 @@ export class TicketmasterEventsController implements AddonControlInterface {
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
           pixelOffset: new Cesium.Cartesian2(0, -size - 5),
           show: true
-        }
+        },
+        description: htmlDescription
       });
     });
+    
+    // Make sure click handler is set up for clusters too
+    if (!this.clickHandlerSet) {
+      viewer.screenSpaceEventHandler.setInputAction((click: any) => {
+        const pickedObject = viewer.scene.pick(click.position);
+        if (Cesium.defined(pickedObject) && pickedObject.id) {
+          viewer.selectedEntity = pickedObject.id;
+        }
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      
+      this.clickHandlerSet = true;
+    }
   }
   
   /**
