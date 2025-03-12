@@ -7,7 +7,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import ngeohash from "npm:ngeohash"
 import { corsHeaders } from "../_shared/cors.ts"
 
-const API_KEY = Deno.env.get("TICKETMASTER_API_KEY") || "SHZDsJ239AJUxoG6hqguRAb1gQyAvksp";
+const API_KEY = Deno.env.get("TICKETMASTER_API_KEY");
 const BASE_TICKETMASTER_API_URL = "https://app.ticketmaster.com";
 const TICKETMASTER_API_URL = "https://app.ticketmaster.com/discovery/v2/events/";
 
