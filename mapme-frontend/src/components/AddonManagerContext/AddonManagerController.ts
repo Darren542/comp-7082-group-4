@@ -184,7 +184,7 @@ export class AddonManagerController extends EventEmitter {
       }
       const data: ServerAddonType[] = await response.json();
       const oldStatus = this.serverAddons.find((a) => a.id === addon.id);
-      const newStatus = data.find((a) => a.id === addon.id);
+      const newStatus = data.find((a) => a.id === addon.id) as ServerAddonType;
       if (oldStatus && newStatus && this.addons[addon.id]) {
         // if the addon was installed and is now active, start it
         if (oldStatus.installed && !oldStatus.active && newStatus.active) {
@@ -213,7 +213,7 @@ export class AddonManagerController extends EventEmitter {
           // await this.addons[addon.id].start();
         }
       }
-      this.serverAddons = data;
+      this.serverAddons = this.serverAddons.map((a) => a.id === addon.id ? newStatus : a);
       return data;
     }
     catch (err: any) {
