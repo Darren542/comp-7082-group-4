@@ -100,6 +100,58 @@ export class TicketmasterEventsController implements AddonControlInterface {
       
       // Create data sources for events and clusters
       this.eventsDataSource = new Cesium.CustomDataSource("ticketmaster-events");
+      this.eventsDataSource.clustering.enabled = true;
+      this.eventsDataSource.clustering.pixelRange = 5;
+      this.eventsDataSource.clustering.minimumClusterSize = 2;
+
+      // Define cluster styling
+      this.eventsDataSource.clustering.clusterEvent.addEventListener((clusteredEntities, cluster) => {
+        const clusterSize = clusteredEntities.length;
+
+        // Generate a custom cluster circle image
+        const clusterImage = createClusterCanvas(clusterSize);
+
+        // Apply the cluster styling
+        cluster.billboard.show = true;
+        cluster.billboard.image = clusterImage;
+        cluster.billboard.verticalOrigin = Cesium.VerticalOrigin.CENTER;
+        cluster.billboard.width = 40; // Adjust size as needed
+        cluster.billboard.height = 40;
+
+        cluster.label.show = false;
+
+      });
+
+    /**
+    * Function to generate a canvas-based cluster icon (circle with number)
+    */
+    function createClusterCanvas(clusterSize: number): string {
+      const size = 40; // Fixed size for cluster circle
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) return "";
+
+      // Draw the circle
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size / 2 - 2, 0, 2 * Math.PI);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.8)"; // Blue background
+      ctx.fill();
+      ctx.strokeStyle = "blue";
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      // Draw the number
+      ctx.fillStyle = "blue";
+      ctx.font = "bold 16px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(clusterSize.toString(), size / 2, size / 2);
+
+      return canvas.toDataURL(); // Convert canvas to image
+    }
       this.clustersDataSource = new Cesium.CustomDataSource("ticketmaster-clusters");
       
       // Add data sources to viewer
@@ -363,7 +415,7 @@ export class TicketmasterEventsController implements AddonControlInterface {
       if (data) {
         // Clear existing entities
         if (this.eventsDataSource) {
-          this.eventsDataSource.entities.removeAll();
+          // this.eventsDataSource.entities.removeAll();
           console.log(`id [${this.groupId}] Removed existing entities`);
         }
         
@@ -398,7 +450,7 @@ export class TicketmasterEventsController implements AddonControlInterface {
     console.log(`[${this.groupId}] Updating display for zoom level: ${zoomLevel}`);
     
     // Clear existing entities
-    this.eventsDataSource.entities.removeAll();
+    // this.eventsDataSource.entities.removeAll();
     this.clustersDataSource.entities.removeAll();
     
     // Configure viewer for infobox display
@@ -471,6 +523,7 @@ export class TicketmasterEventsController implements AddonControlInterface {
       eventsByLocation[locationKey].push(event);
     });
     
+    eventsDataSource.entities.removeAll();
     // Now create entities for each location
     Object.entries(eventsByLocation).forEach(([locationKey, eventsAtLocation]) => {
         // Sort events by date (most recent first)
@@ -537,25 +590,30 @@ export class TicketmasterEventsController implements AddonControlInterface {
           ? `${mostRecentEvent.name} (+${eventsAtLocation.length - 1} more)`
           : mostRecentEvent.name;
         
+        
         // Add the entity to the data source
         eventsDataSource.entities.add({
           id: `event-location-${locationKey}`,
           position: Cesium.Cartesian3.fromDegrees(lon, lat),
           billboard: {
-            image: 'mapPoint.png',
-            width: 40,
-            height: 40,
-            verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+              image: 'mapPoint.png',
+              width: 40,
+              height: 40,
+              verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+              scaleByDistance: new Cesium.NearFarScalar(100, 1.0, 20000, 0.3) // **Scale label with zoom**
           },
-          //label of the event
+          // Label of the event
           label: {
-            text: labelText,
-            font: '20px sans-serif',
-            fillColor: Cesium.Color.WHITE,
-            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-            pixelOffset: new Cesium.Cartesian2(0, -20),
-            show: true
+              text: labelText,
+              font: '14px sans-serif',
+              fillColor: Cesium.Color.WHITE,
+              outlineColor: Cesium.Color.BLACK, // Outline color
+              outlineWidth: 5, // **Make outline thicker**
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+              pixelOffset: new Cesium.Cartesian2(0, -20),
+              show: true,
+              scaleByDistance: new Cesium.NearFarScalar(100, 1.0, 200000, 0.3) // **Scale label with zoom**
           },
           description: htmlDescription,
         });
