@@ -364,6 +364,7 @@ export class TicketmasterEventsController implements AddonControlInterface {
         // Clear existing entities
         if (this.eventsDataSource) {
           this.eventsDataSource.entities.removeAll();
+          console.log(`id [${this.groupId}] Removed existing entities`);
         }
         
         if (this.clustersDataSource) {
@@ -538,7 +539,7 @@ export class TicketmasterEventsController implements AddonControlInterface {
         
         // Add the entity to the data source
         eventsDataSource.entities.add({
-          id: `${venue.name}`,
+          id: `event-location-${locationKey}`,
           position: Cesium.Cartesian3.fromDegrees(lon, lat),
           billboard: {
             image: 'mapPoint.png',
