@@ -9,20 +9,20 @@ export const installedAddons = [
     apiLocation: "http://localhost:5001/api/canadaTravelAdvisory",
   },
   { 
-    id: "testAddon",
-    name: "testAddon",
-    desc: "Test Points Desc", 
-    active: true, 
-    installed: true,
-    apiLocation: "http://localhost:5001/api/testAddon"
-  },
-  { 
     id: "Ticketmaster",
     name: "Ticketmaster", 
     desc: "Ticketmaster Events", 
     active: true,
     installed: true,
     apiLocation: "http://localhost:5001/api/events"
+  },
+  { 
+    id: "testAddon",
+    name: "testAddon",
+    desc: "Test Points Desc", 
+    active: true, 
+    installed: true,
+    apiLocation: "http://localhost:5001/api/testAddon"
   },
   { 
     id: "testAddon2",

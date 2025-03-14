@@ -79,8 +79,15 @@ export class CanadaTravelAdvisoryController implements AddonControlInterface {
       this.countryGeoJsonDataSource = geoJsonDataSource;
       viewer.dataSources.add(geoJsonDataSource);
   
-      const travelAdvisory = await fetch("/canadaTravelAdvisory.json");
-      this.travelAdvisoryJson = await travelAdvisory.json();
+      // const travelAdvisory = await fetch("/canadaTravelAdvisory.json");
+      console.log(`[${this.groupId}] Travel Advisory Data fetch startomg!`);
+      const response = await fetch(this.apiLocation);
+      if (!response.ok) {
+        console.error(`[${this.groupId}] Failed to fetch travel advisory data.`);
+        return false;
+      }
+      this.travelAdvisoryJson = await response.json();
+      console.log(`[${this.groupId}] Travel Advisory Data:`, this.travelAdvisoryJson);
   
       // Apply the travel advisory state to the countries
       geoJsonDataSource.entities.values.forEach((entity) => {
