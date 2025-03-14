@@ -4,8 +4,7 @@ import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth";
 import addonRoutes from "./routes/addon";
-
-import { mockData } from "./mock";
+import advisoryRoutes from "./routes/travelAdvisory";
 
 dotenv.config();
 
@@ -22,6 +21,8 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/auth", authRoutes); 
 
 app.use("/api/addons", addonRoutes);
+
+app.use("/api/canadaTravelAdvisory", advisoryRoutes);
 
 app.listen(PORT, () => {
   console.log(`Backend is running on http://localhost:${PORT}`);
