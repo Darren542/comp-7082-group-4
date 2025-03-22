@@ -5,9 +5,12 @@ import city from "../../assets/city.png";
 import gLogo from "../../assets/googleLogo.svg";
 import { Button } from "../../components/button";
 import { InputField } from "../../components/inputField";
+import { Header } from "../../components/Header";
 
 export const SignupPage = () => {
   const navigate = useNavigate();
+  const [firstName, setFirstName] = useState<string>("");
+  const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -28,7 +31,7 @@ export const SignupPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ firstName, lastName, email, password }),
       });
 
       const data = await response.json();
@@ -42,6 +45,14 @@ export const SignupPage = () => {
         // Store token and user info
         localStorage.setItem('userEmail', data.user.email);
         localStorage.setItem('userToken', data.session.access_token)
+        
+        // Store user display name if available
+        if (data.user.user_metadata && data.user.user_metadata.display_name) {
+          localStorage.setItem('userDisplayName', data.user.user_metadata.display_name);
+        } else {
+          localStorage.setItem('userDisplayName', `${firstName} ${lastName}`);
+        }
+        
         navigate("/map")
       } else {
         navigate("/login")
@@ -60,13 +71,16 @@ export const SignupPage = () => {
       className="bg-cover h-screen w-screen flex flex-col items-center justify-center"
       style={{ backgroundImage: `url(${bgPhoto})` }}
     >
-      <div className="flex w-full max-w-7xl items-center justify-center">
+      <Header />
+      <div className="flex w-full max-w-7xl items-center justify-center pt-[60px]">
         <div className="w-1/2 flex flex-col items-center justify-center">
           <div className="flex flex-col items-center justify-center">
             <h1 className="text-6xl font-bold text-black">Sign Up for MapMe</h1>
             <h1 className="text-3xl text-black pt-5 font-medium">Join and start mapping!</h1>
           </div>
           <div className="w-1/2 flex flex-col items-center justify-center mt-8 space-y-4">
+            <InputField placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            <InputField placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
             <InputField placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
             <InputField
               placeholder="Password"
@@ -84,7 +98,7 @@ export const SignupPage = () => {
               <span className="text-gray-700 font-medium">Sign up with Google</span>
             </button>
             <h1>
-              Already have an account? <a className="text-blue-500 underline" onClick={() => navigate('/login')}>Login</a>
+              Already have an account? <a className="cursor-pointer text-blue-500 underline" href="/login">Login</a>
             </h1>
           </div>
         </div>

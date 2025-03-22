@@ -2,20 +2,28 @@ import { Link } from 'react-router-dom';
 import { Button } from '../button'; 
 import logo from '../../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 export const Header = () => {
   const navigate = useNavigate();
+  const [userDisplayName, setUserDisplayName] = useState<string | null>(null);
 
   const userToken = localStorage.getItem('userToken');
+
+  useEffect(() => {
+    const displayName = localStorage.getItem('userDisplayName');
+    setUserDisplayName(displayName);
+  }, []);
 
   // Clear session
   const handleLogout = () => {
     localStorage.clear();
+    setUserDisplayName(null);
     navigate('/');
   }
 
   return (
-    <header className="w-full bg-[#BFD7FF] p-0" style={{width: "100%", height: "60px"}}>
+    <header className="w-full bg-[#BFD7FF] p-0 fixed top-0 z-50" style={{width: "100%", height: "60px"}}>
       <div className="flex items-center justify-between h-full">
         <Link to="/" className="flex items-center">
           <img 
@@ -30,9 +38,15 @@ export const Header = () => {
         <nav>
             
           <ul className="flex space-x-6 items-center pr-4">
+          {userToken && userDisplayName && (
+              <li className="text-xl text-black">
+                {userDisplayName}
+              </li>
+            )}
             <li>
                 <Link to="/about" className="text-xl text-black hover:text-blue-600">About</Link>
             </li>
+            
             <li>
               {/* <Button text="Login" onClick={() => window.location.href = '/login'} /> */}
               {

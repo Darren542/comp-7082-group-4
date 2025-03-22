@@ -5,6 +5,7 @@ import city from "../../assets/city.png";
 import gLogo from "../../assets/googleLogo.svg";
 import { Button } from "../../components/button";
 import { InputField } from "../../components/inputField";
+import { Header } from "../../components/Header";
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -40,6 +41,11 @@ export const LoginPage = () => {
       // Set user state using returned data
       localStorage.setItem('userToken', data.session.access_token);
       localStorage.setItem('userEmail', data.user.email);
+      
+      // Store user display name
+      if (data.user.user_metadata && data.user.user_metadata.display_name) {
+        localStorage.setItem('userDisplayName', data.user.user_metadata.display_name);
+      }
 
       // Redirect to map page
       navigate("/map");
@@ -57,7 +63,8 @@ export const LoginPage = () => {
       className="bg-cover h-screen w-screen flex flex-col items-center justify-center"
       style={{ backgroundImage: `url(${bgPhoto})` }}
     >
-      <div className="flex w-full max-w-7xl items-center justify-center">
+      <Header />
+      <div className="flex w-full max-w-7xl items-center justify-center pt-[60px]">
         <div className="w-1/2 flex flex-col items-center justify-center">
           <div className="flex flex-col items-center justify-center">
             <h1 className="text-6xl font-bold text-black">Login To MapMe</h1>
