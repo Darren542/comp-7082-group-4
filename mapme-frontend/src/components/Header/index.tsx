@@ -38,26 +38,32 @@ export const Header = () => {
         <nav>
             
           <ul className="flex space-x-6 items-center pr-4">
-          {userToken && userDisplayName && (
-              <li className="text-xl text-black">
-                {userDisplayName}
-              </li>
-            )}
             <li>
-                <Link to="/about" className="text-xl text-black hover:text-blue-600">About</Link>
+                <Link to="/map" className="text-xl text-black hover:text-blue-600">About</Link>
             </li>
             
-            <li>
-              {/* <Button text="Login" onClick={() => window.location.href = '/login'} /> */}
-              {
-                userToken ? (
-                  <Button text="Logout" onClick={handleLogout} />
-                ) : (
-                  <Button text="Login" onClick={() => navigate('/login')} />
-                )
-              }
-            </li>
-
+            {userToken ? (
+              <>
+                <li>
+                  <button 
+                    onClick={handleLogout} 
+                    className="cursor-pointer text-xl text-red-600 hover:text-red-800"
+                  >
+                    Logout
+                  </button>
+                </li>
+                <li>
+                  <Button 
+                    text={userDisplayName || 'Profile'} 
+                    onClick={() => navigate('/map')} 
+                  />
+                </li>
+              </>
+            ) : (
+              <li>
+                <Button text="Login" onClick={() => navigate('/login')} />
+              </li>
+            )}
           </ul>
         </nav>
       </div>
