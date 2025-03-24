@@ -6,6 +6,7 @@ import tmaster from '../../assets/tmaster.png'
 import pins from '../../assets/pins.png'
 import globe from '../../assets/globe.png'
 import yelp from '../../assets/yelp.png'
+import { Header } from "../../components/Header";
 
 interface User {
     id: string,
@@ -25,8 +26,9 @@ export const LandingPage =({ user }: LandingPageProps) => {
     }
 
     return (
-        <div className="overflow-x-hidden h-screen w-screen bg-cover flex flex-col items-center justify-center" style={{ backgroundImage: `url(${bgPhoto})` }}>
-          <div className="flex w-full">
+        <div className="overflow-x-hidden h-screen w-screen bg-cover flex flex-col items-center justify-center" style={{ backgroundImage: `url(${bgPhoto})` }}>    
+          <Header />
+          <div className="flex w-full pt-[60px]">
             <div className="w-1/2 m-10 mt-0 pl-10 pt-10 ">
               <div className="mt-10 pl-10 ml-10 pt-10 p-6">
                 <h1 className="text-6xl font-bold text-black">Discover the world </h1>

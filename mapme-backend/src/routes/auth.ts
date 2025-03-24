@@ -5,17 +5,13 @@ const router = Router();
 
 // // Sign up a user
 router.post("/signup", async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+    const { firstName, lastName, email, password } = req.body;
 
-    if (!email || !password) {
-        res.status(400).json({ error: "Email and password are required." });
+    if (!firstName || !lastName || !email || !password) {
+        res.status(400).json({ error: "First name, last name, email, and password are required." });
         return
     }
     
-    // Gonna Just Make Names from Emails for Ease ATM
-    let [firstName, lastName] = email.split("@");
-    lastName = lastName.split(".")[0];
-
     // Sign up the user with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
