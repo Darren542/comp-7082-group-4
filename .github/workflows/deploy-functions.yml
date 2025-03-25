@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+          path: comp-7082-group-4
 
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
