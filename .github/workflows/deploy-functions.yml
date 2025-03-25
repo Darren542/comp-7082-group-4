@@ -7,7 +7,7 @@ on:
     branches:
       - main
     paths:
-      - functions/**
+      - mapme-microservices/supabase/functions/**
   # Allow manual triggering of the workflow through the Actions tab.
   workflow_dispatch:
 
