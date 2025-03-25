@@ -1,8 +1,3 @@
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
-
-// Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import ngeohash from "npm:ngeohash"
 import { corsHeaders } from "../_shared/cors.ts"
@@ -74,24 +69,13 @@ async function fetchAllEvents(url: string, page = 0, collectedData: any[] = []):
     }
   };
 
+  // If there is more than 1 page, recursively call fetchAllFunctions with the events collected so far to create one big list
   if (data?.page?.totalPages > page + 1) {
     const next_url = BASE_TICKETMASTER_API_URL + data?._links?.next.href + "&apikey=" + API_KEY;
-    // console.log("Next URL:", next_url);
     const nextData = await fetchAllEvents(next_url, page + 1, collectedData);
     return nextData;  }
 
   return collectedData;
-}
-
-// Paginate responses for client
-function paginateResults(data: any[], page: number, pageSize: number) {
-  const start = page * pageSize;
-  const end = start + pageSize;
-  return {
-    results: data.slice(start, end),
-    currentPage: page,
-    totalPages: Math.ceil(data.length / pageSize),
-  };
 }
 
 function getISODateString(date: Date) {
@@ -108,9 +92,6 @@ Deno.serve(async (req) => {
 
   try {
     let { latitude, longitude, city, radius } = await req.json();
-    console.log("Latitude", latitude);
-    console.log("Longitude", longitude);
-    console.log("Radius", radius);
 
     if (!((latitude && longitude) || city)) {
       return new Response(JSON.stringify({ error: "Either Latitude and Longitude or City is Required"}), {
@@ -137,9 +118,7 @@ Deno.serve(async (req) => {
       const nextWeek = new Date(today);
       nextWeek.setUTCDate(today.getUTCDate() + 14);
       const nextWeekISO = getISODateString(nextWeek);
-      
-      console.log("Next week:", nextWeekISO);
-      
+            
       params.append("endDateTime", nextWeekISO);
     }
     if (city) params.append("city", city);
@@ -149,17 +128,10 @@ Deno.serve(async (req) => {
       console.log(`Query URL: ${apiurl}`)
       const allEvents = await fetchAllEvents(apiurl);
 
-      // console.log("All Events:", allEvents);
-      console.log("Num of events fetched", allEvents.length);
-
-      // Paginate results for the clinet
-      // const paginatedResponse = paginateResults(allEvents, page, pageSize);
-
       return new Response(JSON.stringify(allEvents), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     } catch (error) {
-      console.log(error);
       return new Response(JSON.stringify({ error: "Failed to fetch data" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -179,15 +151,3 @@ Deno.serve(async (req) => {
 
   
 })
-
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/ticketmaster' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-    --header 'Content-Type: application/json' \
-    --data '{"name":"Functions"}'
-
-*/
