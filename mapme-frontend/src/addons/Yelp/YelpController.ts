@@ -25,7 +25,7 @@ interface YelpPlace {
   };
 }
 
-export class YelpPlacesController implements AddonControlInterface {
+export class YelpController implements AddonControlInterface {
   private state = AddonState.uninstalled;
   public groupId = ADDONS.YELP_PLACES;
   private dataSource: Cesium.CustomDataSource | null = null;
