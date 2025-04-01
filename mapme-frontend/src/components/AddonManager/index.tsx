@@ -4,6 +4,8 @@ import { AddonWindow } from "../AddonWindow";
 import { CanadaTravelAdvisoryModal } from "../../addons/CanadaTravelAdvisory/CanadaTravelAdvisoryModal";
 import { ADDONS } from "../../config";
 import { TicketmasterEventsModal } from "../../addons/TicketMaster/TicketMasterModal";
+import { YelpPlacesModal } from "../../addons/yelp/YelpPlacesModal";
+
 
 /**
  * This function returns the component for the addon based on the addonId.

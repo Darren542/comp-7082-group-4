@@ -296,3 +296,7 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.ticketmaster]
 verify_jwt=false
+
+[functions.yelp]
+verify_jwt=false
+

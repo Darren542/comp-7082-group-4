@@ -6,5 +6,5 @@ export const APP_CONFIG = {
 export const ADDONS = {
   CANADA_TRAVEL_ADVISORY: "canadaTravelAdvisory",
   TICKETMASTER_EVENTS: "Ticketmaster",
-
-}
+  YELP_PLACES: "YELP_PLACES",
+} 
