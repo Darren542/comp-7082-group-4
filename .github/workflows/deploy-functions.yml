@@ -16,7 +16,7 @@ on:
 jobs:
   Deploy-Edge-Functions:
     # Use the latest version of the Ubuntu environment to run the job.
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     # Set up environment variables for the Supabase CLI and project ID.
     env:
@@ -101,5 +101,5 @@ jobs:
       - name: Deploy Functions
         run: |
           for function in $IMPACTED_FUNCTIONS; do
-            supabase functions deploy $function --project-ref $PROJECT_ID
+            supabase functions deploy $function --project-ref $PROJECT_ID --debug
           done
