@@ -25,6 +25,13 @@ interface YelpPlace {
   };
 }
 
+interface ClusteredPlace {
+  latitude: number;
+  longitude: number;
+  count: number;
+  places: YelpPlace[];
+}
+
 export class YelpController implements AddonControlInterface {
   private state = AddonState.uninstalled;
   public groupId = ADDONS.YELP_PLACES;
@@ -130,7 +137,7 @@ export class YelpController implements AddonControlInterface {
     const zoomLevel = this.getZoomLevelFromHeight(height);
     const radius = this.getRadiusForZoomLevel(zoomLevel);
 
-    this.loadPlaces(latitude, longitude, radius);
+    this.loadPlaces(latitude, longitude, radius, zoomLevel);
   }
 
   private getZoomLevelFromHeight(height: number): number {
@@ -148,60 +155,96 @@ export class YelpController implements AddonControlInterface {
     return Math.max(100, Math.min(1000, 1500 - (zoomLevel * 40)));
   }
 
-  private async loadPlaces(latitude: number, longitude: number, radius: number): Promise<void> {
+  private async loadPlaces(latitude: number, longitude: number, radius: number, zoomLevel: number): Promise<void> {
     const areaKey = `${latitude.toFixed(2)}-${longitude.toFixed(2)}-${radius}`;
     const lastLoaded = this.loadedAreas.get(areaKey);
     if (lastLoaded && Date.now() - lastLoaded < this.cacheExpiryTime) return;
-
+  
     const { data, error } = await this.supabase.functions.invoke("yelp", {
       body: { latitude, longitude, radius }
     }) as { data: YelpPlace[], error: any };
-
-    if (error || !data) return;
-
+  
+    if (error || !data || !this.dataSource) return;
+  
     this.places = {};
-    if (this.dataSource) this.dataSource.entities.removeAll();
-
-    data.forEach(place => {
-      this.places[place.id] = place;
-
-      if (!place.coordinates?.latitude || !place.coordinates?.longitude) return;
-
+    this.dataSource.entities.removeAll();
+  
+    // Grouping logic (based on zoom level)
+    const clusterPrecision = zoomLevel < 14 ? 2 : 5;
+    const clusters: Record<string, ClusteredPlace> = {};
+  
+    for (const place of data) {
+      if (!place.coordinates?.latitude || !place.coordinates?.longitude) continue;
+  
+      const lat = parseFloat(place.coordinates.latitude.toFixed(clusterPrecision));
+      const lon = parseFloat(place.coordinates.longitude.toFixed(clusterPrecision));
+      const key = `${lat}-${lon}`;
+  
+      if (!clusters[key]) {
+        clusters[key] = { latitude: lat, longitude: lon, count: 0, places: [] };
+      }
+      clusters[key].places.push(place);
+      clusters[key].count++;
+    }
+  
+    for (const cluster of Object.values(clusters)) {
+      const mostRelevant = cluster.places[0];
+  
+      const labelText = cluster.count > 1
+        ? `${mostRelevant.name} (+${cluster.count - 1} more)`
+        : mostRelevant.name;
+  
       const description = `
-        <div>
-          <h3>${place.name}</h3>
-          <p><strong>Rating:</strong> ${place.rating}</p>
-          <p><strong>Category:</strong> ${place.categories?.[0]?.title ?? "N/A"}</p>
-          <p><strong>Address:</strong> ${place.location?.address1 ?? "N/A"}, ${place.location?.city}</p>
-          ${place.url ? `<p><a href="${place.url}" target="_blank">View on Yelp</a></p>` : ""}
-        </div>
-      `;
-
-      this.dataSource?.entities.add({
-        id: `yelp-${place.id}`,
-        position: Cesium.Cartesian3.fromDegrees(place.coordinates.longitude, place.coordinates.latitude),
+        <div style="
+          font-family: 'Segoe UI', sans-serif;
+          background: white;
+          border-radius: 12px;
+          padding: 16px;
+          max-width: 280px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        ">
+    <h3 style="font-size: 1.2em; color: #d32323; margin-bottom: 8px;">${mostRelevant.name}</h3>
+    <p style="margin: 4px 0; color: #2b6cb0;"><strong>Rating:</strong> ${mostRelevant.rating}</p>
+    <p style="margin: 4px 0; color: #2b6cb0;"><strong>Category:</strong> ${mostRelevant.categories?.[0]?.title ?? "N/A"}</p>
+    <p style="margin: 4px 0; color: #2b6cb0;"><strong>Address:</strong> ${mostRelevant.location?.address1 ?? "N/A"}, ${mostRelevant.location?.city}</p>
+    ${
+      mostRelevant.url
+        ? `<p style="margin: 4px 0;"><a href="${mostRelevant.url}" target="_blank" style="color: #0073bb; text-decoration: none; font-weight: 500;">View on Yelp</a></p>`
+        : ""
+    }
+  </div>
+`;
+  
+      this.dataSource.entities.add({
+        id: `yelp-${mostRelevant.id}`,
+        name: mostRelevant.name,
+        position: Cesium.Cartesian3.fromDegrees(cluster.longitude, cluster.latitude),
         billboard: {
-          image: "yelpMarker.png",
+          image: "/pin.png",
           width: 32,
           height: 32,
-          verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          scaleByDistance: new Cesium.NearFarScalar(100, 1.0, 20000, 0.3)
         },
         label: {
-          text: place.name,
+          text: labelText,
           font: "14px sans-serif",
           fillColor: Cesium.Color.WHITE,
           outlineColor: Cesium.Color.BLACK,
           outlineWidth: 2,
           style: Cesium.LabelStyle.FILL_AND_OUTLINE,
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-          pixelOffset: new Cesium.Cartesian2(0, -32)
+          pixelOffset: new Cesium.Cartesian2(0, -32),
+          scaleByDistance: new Cesium.NearFarScalar(100, 1.0, 8000, 0.0),
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 8000)
         },
-        description: description
+        description
       });
-    });
-
+    }
+  
     this.loadedAreas.set(areaKey, Date.now());
   }
+  
 
   getPlaceStats(): { totalPlaces: number; loadedAreas: number } {
     return {
