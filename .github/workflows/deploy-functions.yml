@@ -31,7 +31,7 @@ jobs:
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: 1.0.0
+          version: latest
 
       - name: Initialize Supabase CLI
         run: supabase init
