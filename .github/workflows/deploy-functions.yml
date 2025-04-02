@@ -5,10 +5,12 @@ on:
     branches:
       - main
     paths:
-      - mapme-microservices/supabase/functions/**
+      - mapme-microservices/**
   workflow_dispatch:
   pull_request:
     types: [opened, synchronize, reopened, closed]
+    paths:
+      - mapme-microservices/**
 
 jobs:
   Deploy-Edge-Functions:
@@ -22,9 +24,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          sparse-checkout: |
-            mapme-microservices
-          sparse-checkout-cone-mode: false
           fetch-depth: 0
           
       - name: Install Supabase CLI
@@ -33,4 +32,5 @@ jobs:
           version: latest
 
       - name: Deploy Functions
+        working-directory: ./mapme-microservices
         run: supabase functions deploy --project-ref $PROJECT_ID
