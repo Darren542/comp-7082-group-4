@@ -8,22 +8,9 @@ import globe from '../../assets/globe.png'
 import yelp from '../../assets/yelp.png'
 import { Header } from "../../components/Header";
 
-interface User {
-    id: string,
-    email: string,
-    token: string,
-  }
-
-interface LandingPageProps {
-    user: User | null,
-}
-
-export const LandingPage =({ user }: LandingPageProps) => {
+export const LandingPage = () => {
     const navigate = useNavigate()
-
-    if (user) {
-        navigate('/map');
-    }
+    const userToken = localStorage.getItem('userToken');
 
     return (
         <div className="overflow-x-hidden h-screen w-screen bg-cover flex flex-col items-center justify-center" style={{ backgroundImage: `url(${bgPhoto})` }}>    
@@ -36,16 +23,23 @@ export const LandingPage =({ user }: LandingPageProps) => {
                 <h1 className="text-3xl text-black pt-10 font-medium ">MapMe, my map, made by me, for me</h1>
               </div>
               <div className="w-2/3 flex items-center justify-center ml-5 gap-8 p-6">
-                <Button 
-                  text="Login"
-                  onClick={() => navigate('/login')}
-                >
-                </Button>
-                <Button 
-                  text="Signup"
-                  onClick={() => navigate('/signup')}
-                >
-                </Button>
+                {userToken ? (
+                  <Button 
+                    text="Go to your Map"
+                    onClick={() => navigate('/map')}
+                  />
+                ) : (
+                  <>
+                    <Button 
+                      text="Login"
+                      onClick={() => navigate('/login')}
+                    />
+                    <Button 
+                      text="Signup"
+                      onClick={() => navigate('/signup')}
+                    />
+                  </>
+                )}
               </div>
             </div>
             <div className="w-1/2 mt-10">
