@@ -32,6 +32,10 @@ jobs:
         uses: supabase/setup-cli/@latest
         with:
           version: latest
+      - name: Install Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.39.4
 
       - name: Initialize Supabase CLI
         run: supabase init
