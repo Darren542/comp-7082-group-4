@@ -144,9 +144,6 @@ async function testConcurrentRequestsWithTiming() {
   }
 }
 
-
-
-
 Deno.test('Test Supabase Client Initialization', testClientCreation);
 Deno.test('Test Return Data is Expected Form', testReturnDataForm);
 Deno.test('Test Invalid Input Parameters', testInvalidInputParameters);

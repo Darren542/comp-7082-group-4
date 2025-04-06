@@ -34,19 +34,10 @@ async function fetchAllEvents(url: string, page = 0, collectedData: any[] = []):
   try {
     response = await fetch(url);
   } catch (fetchErr) {
-    throw new Error(`Network error while contacting Ticketmaster API: ${fetchErr}`);
+    throw new Error(`Unable to reach Tickemaster API: ${fetchErr}`);
   }
 
-  if (!response.ok) {
-    throw new Error(`Ticketmaster API responded with status ${response.status}`);
-  }
-
-  let data;
-  try {
-    data = await response.json();
-  } catch (jsonErr) {
-    throw new Error(`Failed to parse Ticketmaster response JSON: ${jsonErr}`);
-  }
+  const data = await response.json();
 
   if (data?._embedded?.events) {
     // Create custom Event object for every event and add to array
@@ -168,10 +159,8 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error fetching events";
-
-      return new Response(JSON.stringify({ error: message }), {
-        status: 502,
+      return new Response(JSON.stringify({ error: "Failed to fetch data:" + error }), {
+        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
