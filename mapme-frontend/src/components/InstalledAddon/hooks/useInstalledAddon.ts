@@ -1,8 +1,9 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { ServerAddonType } from "../../AddonManagerContext/AddonManagerController";
 
 export const useInstalledAddon = (details: ServerAddonType, update: (newStatus: ServerAddonType) => void) => {
   const [isVisible, setIsVisible] = useState(details.active || false);
+  const [status, setStatus] = useState(details.addon?.getState?.() ?? "unknown");
 
   const handleToggleVisibility = useCallback((id: string, isVisible: boolean) => {
     // Logic to toggle visibility on the map
@@ -17,5 +18,14 @@ export const useInstalledAddon = (details: ServerAddonType, update: (newStatus: 
     console.log(`[${id}] Starting Uninstall process...`);
   }, []);
 
-  return { handleToggleVisibility, handleRemove, isVisible };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const current = details.addon?.getState?.();
+      setStatus(current ?? "unknown");
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [details.addon]);
+
+  return { handleToggleVisibility, handleRemove, isVisible, status };
 };

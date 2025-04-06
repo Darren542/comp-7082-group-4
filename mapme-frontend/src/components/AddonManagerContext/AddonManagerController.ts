@@ -2,6 +2,7 @@ import { EventEmitter } from "events";
 import { CesiumContextType } from "../CesiumContext/useCesiumContext";
 import { CanadaTravelAdvisoryController } from "../../addons/CanadaTravelAdvisory/CanadaTravelAdvisoryController";
 import { TicketmasterEventsController } from "../../addons/TicketMaster/TicketMasterController";
+import { YelpController } from "../../addons/Yelp/YelpController";
 import { APP_CONFIG } from "../../config";
 
 /**
@@ -64,6 +65,7 @@ export class AddonManagerController extends EventEmitter {
     this.addons = {
       canadaTravelAdvisory: new CanadaTravelAdvisoryController(cesium),
       Ticketmaster: new TicketmasterEventsController(cesium),
+      YELP_PLACES: new YelpController(cesium),
     };
 
     this.cesium = cesium;
@@ -209,8 +211,6 @@ export class AddonManagerController extends EventEmitter {
           this.addons[addon.id].install()
             .then(() => this.addons[addon.id].initialize())
             .then(() => this.addons[addon.id].start());
-          // const response = await this.addons[addon.id].initialize();
-          // await this.addons[addon.id].start();
         }
       }
       this.serverAddons = this.serverAddons.map((a) => a.id === addon.id ? newStatus : a);

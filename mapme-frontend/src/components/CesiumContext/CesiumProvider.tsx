@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { Viewer, Entity, Cartesian3, Color, CustomDataSource, Ion, Math } from "cesium";
 import { CesiumContext } from "./useCesiumContext";
@@ -23,6 +22,15 @@ export const CesiumProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       animation: false,
       timeline: false,
       terrainProvider: undefined,
+    });
+
+    // Set the initial view of the map to Vancouver, Canada
+    viewerRef.current.camera.flyTo({
+      destination: Cartesian3.fromDegrees(-123.1207, 49.2827, 20000),
+      orientation: {
+        heading: Math.toRadians(0.0),
+        roll: 0.0,
+      },
     });
 
     // gets center coordiantes of the map

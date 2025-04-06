@@ -13,7 +13,7 @@ export const InstalledAddon = ({
   update,
   openAddonWindow,
 }: InstalledAddonProps) => {
-  const { handleToggleVisibility, handleRemove, isVisible } = useInstalledAddon(details, update);
+  const { handleToggleVisibility, handleRemove, isVisible, status } = useInstalledAddon(details, update);
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700">
@@ -56,6 +56,10 @@ export const InstalledAddon = ({
         >
           Remove
         </button>
+
+        <div>
+          <p className="text-xs leading-none text-gray-500 dark:text-gray-400 self-end">Status:<br />{status}</p>
+        </div>
       </div>
     </div>
   );

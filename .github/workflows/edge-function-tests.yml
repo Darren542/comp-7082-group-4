@@ -1,4 +1,4 @@
-name: Deploy Supabase Function
+name: Run Edge Function Unit Tests
 
 on:
   push:
@@ -13,7 +13,7 @@ on:
       - mapme-microservices/**
 
 jobs:
-  Deploy-Edge-Functions:
+  Run Unit Tests:
     runs-on: ubuntu-latest
 
     env:
@@ -26,11 +26,11 @@ jobs:
         with:
           fetch-depth: 0
           
-      - name: Install Supabase CLI
-        uses: supabase/setup-cli@v1
+      - name: Install Deno
+        uses: denoland/setup-deno@v2
         with:
-          version: latest
+          deno-version: v2.2.6
 
-      - name: Deploy Functions
-        working-directory: ./mapme-microservices
-        run: supabase functions deploy --project-ref $PROJECT_ID
+      - name: Run Tests
+        working-directory: ./mapme-microservices/supabase/functions/tests
+        run: deno task test --allow-net

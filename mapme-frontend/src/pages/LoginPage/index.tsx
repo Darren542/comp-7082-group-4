@@ -79,7 +79,7 @@ export const LoginPage = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
             {error && <p className="text-red-500">{error}</p>}
-            <Button text="Login" onClick={handleLogin} />
+            <Button id="LoginButton" text="Login" onClick={handleLogin} />
             <h1 className="text-2xl opacity-30 text-black font-medium">Or</h1>
             <button
               className="flex items-center justify-center gap-2 w-[345px] h-[48px] border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors"

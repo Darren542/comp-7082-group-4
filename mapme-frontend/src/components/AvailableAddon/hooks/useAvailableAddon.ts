@@ -1,5 +1,20 @@
-import { useCallback } from "react";
+import { useEffect, useState } from "react";
 
-export const useAvailableAddon = () => {
-  // I moved all this logic up to the AddonManager component
+import type { ServerAddonType } from "../../AddonManagerContext/AddonManagerController";
+
+export const useAvailableAddon = (details: ServerAddonType) => {
+  const [status, setStatus] = useState(details.addon?.getState?.() ?? "unknown");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const current = details.addon?.getState?.();
+      setStatus(current ?? "unknown");
+    }, 500);
+
+    return () => clearInterval(interval); // cleanup
+  }, [details.addon]);
+
+  return {
+    status
+  }
 };

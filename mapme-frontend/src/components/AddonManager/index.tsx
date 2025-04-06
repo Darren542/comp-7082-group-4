@@ -4,6 +4,8 @@ import { AddonWindow } from "../AddonWindow";
 import { CanadaTravelAdvisoryModal } from "../../addons/CanadaTravelAdvisory/CanadaTravelAdvisoryModal";
 import { ADDONS } from "../../config";
 import { TicketmasterEventsModal } from "../../addons/TicketMaster/TicketMasterModal";
+import { YelpModal } from "../../addons/Yelp/YelpModal";
+
 
 /**
  * This function returns the component for the addon based on the addonId.
@@ -15,10 +17,13 @@ const getAddonComponent = (addonId: string) => {
       return <CanadaTravelAdvisoryModal />;
     case ADDONS.TICKETMASTER_EVENTS:
       return <TicketmasterEventsModal />;
+    case ADDONS.YELP_PLACES:
+      return <YelpModal />;
     default:
-      return <p>No Details Available</p>
+      return <p>No Details Available</p>;
   }
 };
+
 
 const AddonManager = () => {
   const hook = useAddonManager();
