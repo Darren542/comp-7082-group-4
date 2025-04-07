@@ -30,7 +30,13 @@ interface Event {
 }
 
 async function fetchAllEvents(url: string, page = 0, collectedData: any[] = []): Promise<any[]> {
-  const response = await fetch(`${url}`);
+  let response;
+  try {
+    response = await fetch(url);
+  } catch (fetchErr) {
+    throw new Error(`Unable to reach Tickemaster API: ${fetchErr}`);
+  }
+
   const data = await response.json();
 
   if (data?._embedded?.events) {
@@ -100,6 +106,27 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return new Response(JSON.stringify({ error: "Latitude and Longitude must be numbers"}), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if ((latitude < -90 || latitude > 90)) {
+      return new Response(JSON.stringify({ error: "Latitude must be between -90 to 90 degrees"}), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if ((longitude < -180 || longitude > 180)) {
+      return new Response(JSON.stringify({ error: "Longitude must be between -180 to 180 degrees"}), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const params = new URLSearchParams({ apikey: API_KEY || "" });
     if (latitude && longitude) {
       // Create geohash
@@ -132,7 +159,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     } catch (error) {
-      return new Response(JSON.stringify({ error: "Failed to fetch data" }), {
+      return new Response(JSON.stringify({ error: "Failed to fetch data:" + error }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
