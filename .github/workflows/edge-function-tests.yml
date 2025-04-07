@@ -18,6 +18,8 @@ jobs:
 
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       PROJECT_ID: qsnuignbeuiqzmiksjty
 
     steps:
@@ -33,4 +35,4 @@ jobs:
 
       - name: Run Tests
         working-directory: ./mapme-microservices/supabase/functions/tests
-        run: deno task test --allow-net
+        run: deno test --allow-net --allow-env --allow-read .
