@@ -54,7 +54,7 @@ export const YelpModal = () => {
       <div className="bg-gray-100 p-3 rounded-md">
         <h4 className="font-medium mb-2">Business Information</h4>
         <div className="space-y-1">
-          <p className="text-sm">Total Places: {placeStats.totalPlaces}</p>
+          {/* <p className="text-sm">Total Places: {placeStats.totalPlaces}</p> */}
           <p className="text-sm">Loaded Areas: {placeStats.loadedAreas}</p>
         </div>
       </div>
