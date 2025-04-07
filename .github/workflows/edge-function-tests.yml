@@ -33,4 +33,4 @@ jobs:
 
       - name: Run Tests
         working-directory: ./mapme-microservices/supabase/functions/tests
-        run: deno task test --allow-net
+        run: deno test --allow-net .
