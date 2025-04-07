@@ -4,7 +4,7 @@ import { YelpController } from "../YelpController";
 import { ADDONS } from "../../../config";
 
 const yelpMarkerTypes = [
-  { text: "Business Marker", color: "bg-yellow-500" }
+  { text: "Business Marker", color: "bg-red-500" }
 ];
 
 export const YelpModal = () => {
