@@ -27,8 +27,6 @@ const getAddonComponent = (addonId: string) => {
 
 const AddonManager = () => {
   const hook = useAddonManager();
-  // console.log("Available Addons: ", hook.availableAddons);
-  // console.log("Installed Addons: ", hook.installedAddons);
 
   return (
     <>

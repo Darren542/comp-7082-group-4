@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AddonContext } from "../../../components/AddonManagerContext/AddonContext";
 import type { CanadaTravelAdvisoryController } from "../CanadaTravelAdvisoryController";
 import { ADDONS } from "../../../config";
@@ -12,6 +12,9 @@ const advisoryLevels = [
   { text: "No data", color: "bg-gray-500" }, 
 ];
 
+/**
+ * Modal for Canada Travel Advisory add on details
+ */
 export const CanadaTravelAdvisoryModal = () => {
   const addonManager = useContext(AddonContext);
   const [addonController, setAddonController] = useState<CanadaTravelAdvisoryController | null>(null);

@@ -1,4 +1,3 @@
-import React from "react";
 import { useInstalledAddon } from "./hooks/useInstalledAddon";
 import { ServerAddonType } from "../AddonManagerContext/AddonManagerController";
 

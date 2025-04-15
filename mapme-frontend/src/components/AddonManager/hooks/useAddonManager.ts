@@ -3,6 +3,9 @@ import { useState, useEffect, useContext } from "react";
 import { AddonContext } from "../../AddonManagerContext/AddonContext";
 import { ServerAddonType } from "../../AddonManagerContext/AddonManagerController";
 
+/**
+ * Manages the states of the addons the User has installed and available
+ */
 const useAddonManager = () => {
   const addonManager = useContext(AddonContext);
 
@@ -17,8 +20,6 @@ const useAddonManager = () => {
       [addonId]: !prev[addonId]
     }));
   }
-
-  // const { addEntityToGroup, clearGroup } = useCesium();
 
   const updateAddonStatus = async (addon: ServerAddonType) => {
     if (!addonManager) {

@@ -9,6 +9,9 @@ const eventMarkerTypes = [
   { text: "Event Cluster", color: "bg-blue-500" },
 ];
 
+/**
+ * Modal for Ticketmaster add on details
+ */
 export const TicketmasterEventsModal = () => {
   const addonManager = useContext(AddonContext);
   const [addonController, setAddonController] = useState<TicketmasterEventsController | null>(null);

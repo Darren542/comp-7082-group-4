@@ -6,7 +6,6 @@ type ButtonProps = {
   onClick: () => void;
 };
 
-//button component
 export const Button: React.FC<ButtonProps> = ({ id, text, onClick }) => {
   // Remove Whitespace from text to use as id if id is not provided
   if (!id) {
@@ -23,5 +22,3 @@ export const Button: React.FC<ButtonProps> = ({ id, text, onClick }) => {
     </button>
   );
 };
-
-

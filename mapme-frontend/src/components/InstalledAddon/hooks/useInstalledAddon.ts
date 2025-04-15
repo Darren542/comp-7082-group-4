@@ -1,6 +1,9 @@
 import { useCallback, useState, useEffect } from "react";
 import { ServerAddonType } from "../../AddonManagerContext/AddonManagerController";
 
+/**
+ * This hook is used to manage the installed addons.
+ */
 export const useInstalledAddon = (details: ServerAddonType, update: (newStatus: ServerAddonType) => void) => {
   const [isVisible, setIsVisible] = useState(details.active || false);
   const [status, setStatus] = useState(details.addon?.getState?.() ?? "unknown");
