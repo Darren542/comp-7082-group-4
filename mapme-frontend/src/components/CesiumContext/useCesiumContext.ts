@@ -1,8 +1,10 @@
 import { useContext, createContext } from "react";
 import { Viewer, Color } from "cesium";
 
+/**
+ * This interface is used to provide the Cesium context to the app.
+ */
 export interface CesiumContextType {
-  // viewer: Viewer | null;
   addEntityToGroup: (
     groupId: string,
     entityOptions: {
@@ -19,6 +21,9 @@ export interface CesiumContextType {
 
 export const CesiumContext = createContext<CesiumContextType | undefined>(undefined);
 
+/**
+ * This hook is used to get the Cesium context.
+ */
 export const useCesium = () => {
   const context = useContext(CesiumContext);
   if (!context) {
